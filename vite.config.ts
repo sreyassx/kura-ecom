@@ -19,10 +19,24 @@ if (typeof process !== 'undefined') {
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
+// Wrapper to prevent "Cannot read properties of undefined (reading 'meta')" in Vite 6 config hooks
+function safeNitro(options?: any) {
+  const plugins = nitro(options)
+  return plugins.map((p: any) => {
+    if (p && p.config) {
+      const originalConfig = p.config
+      p.config = function (this: any, ...args: any[]) {
+        return originalConfig.apply(this || { meta: {} }, args)
+      }
+    }
+    return p
+  })
+}
+
 export default defineConfig({
   plugins: [
     tanstackStart(),
-    nitro(),
+    safeNitro(),
     react()
   ],
   resolve: {

@@ -4,8 +4,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "start": "vite preview"
+    "build": "nitro build",
+    "start": "vite preview",
+    "postinstall": "node scripts/patch-nitro.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.43.0",
