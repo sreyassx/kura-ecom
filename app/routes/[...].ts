@@ -1,4 +1,4 @@
-import { getRouter } from '../src/router'
+import { getRouter } from '../../src/router'
 import { renderToStream } from '@tanstack/react-start/server'
 
 export default defineEventHandler(async (event) => {
