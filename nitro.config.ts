@@ -20,13 +20,10 @@ export default defineNitroConfig({
             return resolve(root, 'src/entry-server.tsx')
           }
           if (id === '#tanstack-start-server-fn-resolver') {
-            return resolve(root, 'node_modules/@tanstack/start-server-core/dist/esm/fake-start-server-fn-resolver.js')
+            return resolve(root, 'node_modules/@tanstack/start-server-core/dist/esm/server-functions-manifest.js')
           }
           if (id === '#tanstack-start-plugin-adapters') {
             return resolve(root, 'node_modules/@tanstack/start-client-core/dist/esm/empty-plugin-adapters.js')
-          }
-          if (id === 'tslib' || id.startsWith('tslib/')) {
-            return resolve(root, 'node_modules/tslib/tslib.es6.mjs')  
           }
           if (id.endsWith('.css')) {
             return '\0empty-css'
@@ -43,9 +40,8 @@ export default defineNitroConfig({
             return 'export default {}'
           }
           return null
-        }
+        },
       })
-    }
-  }
+    },
+  },
 })
-
