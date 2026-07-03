@@ -28,7 +28,6 @@ export default defineNitroConfig({
           if (id === 'tslib' || id.startsWith('tslib/')) {
             return resolve(root, 'node_modules/tslib/tslib.es6.mjs')  
           }
-            // Force rebuild with updated env vars
           if (id.endsWith('.css')) {
             return '\0empty-css'
           }
