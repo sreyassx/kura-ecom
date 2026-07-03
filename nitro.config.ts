@@ -31,8 +31,11 @@ export default defineNitroConfig({
           if (id === '@supabase/auth-js') {
             return resolve(root, 'node_modules/@supabase/auth-js/dist/index.js')
           }
-          if (id === 'tslib' || id.startsWith('tslib/')) {
-            return resolve(root, 'node_modules/tslib/tslib.es6.mjs')     
+          if (id === '@supabase/auth-js') {
+            return resolve(root, 'node_modules/@supabase/auth-js/dist/index.js')
+          }
+          if (id === '@supabase/supabase-js') {
+            return resolve(root, 'node_modules/@supabase/supabase-js/dist/index.js')   
           }
           if (id.endsWith('.css')) {
             return '\0empty-css'
