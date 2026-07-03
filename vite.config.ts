@@ -36,7 +36,7 @@ function safeNitro(options?: any) {
 export default defineConfig({
   plugins: [
     tanstackStart(),
-    safeNitro(),
+    safeNitro({ preset: 'vercel' }),
     react()
   ],
   resolve: {
