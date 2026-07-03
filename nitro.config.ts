@@ -20,7 +20,7 @@ export default defineNitroConfig({
             return resolve(root, 'src/entry-server.tsx')
           }
           if (id === '#tanstack-start-server-fn-resolver') {
-            return resolve(root, 'node_modules/@tanstack/start-server-core/dist/esm/server-functions-manifest.js')
+            return resolve(root, 'node_modules/@tanstack/start-server-core/dist/esm/fake-start-server-fn-resolver.js')
           }
           if (id === '#tanstack-start-plugin-adapters') {
             return resolve(root, 'node_modules/@tanstack/start-client-core/dist/esm/empty-plugin-adapters.js')
