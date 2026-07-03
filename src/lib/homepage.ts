@@ -1,13 +1,10 @@
 import { createServerFn } from '@tanstack/react-start'
-import { promises as fs } from 'fs'
-import { join } from 'path'
 import { supabase } from '@/integrations/supabase/client'
 import { createClient } from '@supabase/supabase-js'
 import { z } from 'zod'
 import { attachSupabaseAuth } from './auth-attacher'
 import { requireSupabaseAuth } from './auth-middleware'
 
-const CONFIG_PATH = join(process.cwd(), 'src/homepage-config.json')
 
 export interface FAQItem {
   id: string;
@@ -173,7 +170,10 @@ export const getHomepageConfig = createServerFn({ method: 'GET' })
     }
 
     try {
-      const data = await fs.readFile(CONFIG_PATH, 'utf-8')
+      const fs = await import('fs');
+      const { join } = await import('path');
+      const CONFIG_PATH = join(process.cwd(), 'src/homepage-config.json');
+      const data = await fs.promises.readFile(CONFIG_PATH, 'utf-8')
       const parsed = JSON.parse(data);
       return {
         badge: parsed?.badge || "Welcome to Kura",
@@ -294,6 +294,9 @@ export const updateHomepageConfig = createServerFn({ method: 'POST' })
     }
 
     try {
+      const fs = await import('fs');
+      const { join } = await import('path');
+      const CONFIG_PATH = join(process.cwd(), 'src/homepage-config.json');
       // Fetch full config, merge the updated fields, and write locally
       const fullConfig = await getHomepageConfig();
       const mergedConfig = {
@@ -304,7 +307,7 @@ export const updateHomepageConfig = createServerFn({ method: 'POST' })
         trust_indicators: data.trust_indicators,
         announcement_bar: data.announcement_bar,
       };
-      await fs.writeFile(CONFIG_PATH, JSON.stringify(mergedConfig, null, 2), 'utf-8')
+      await fs.promises.writeFile(CONFIG_PATH, JSON.stringify(mergedConfig, null, 2), 'utf-8')
     } catch (error: any) {
       console.error("Failed to write homepage config locally:", error)
     }
@@ -363,7 +366,10 @@ export const updateSiteSettings = createServerFn({ method: 'POST' })
     }
 
     try {
-      await fs.writeFile(CONFIG_PATH, JSON.stringify(data, null, 2), 'utf-8')
+      const fs = await import('fs');
+      const { join } = await import('path');
+      const CONFIG_PATH = join(process.cwd(), 'src/homepage-config.json');
+      await fs.promises.writeFile(CONFIG_PATH, JSON.stringify(data, null, 2), 'utf-8')
     } catch (error: any) {
       console.error("Failed to write site settings backup locally:", error)
     }
