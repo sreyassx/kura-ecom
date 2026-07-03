@@ -29,7 +29,7 @@ export default defineNitroConfig({
             return resolve(root, 'node_modules/tslib/tslib.es6.mjs')
           }
           if (id === '@supabase/auth-js' || id === '@supabase/supabase-js') {
-            return false // Let Nitro handle bundling normally
+            return resolve(root, `node_modules/${id}/dist/main.js`)
           }
           if (id.endsWith('.css')) {
             return '\0empty-css'
