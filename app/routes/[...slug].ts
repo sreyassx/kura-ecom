@@ -1,15 +1,9 @@
-import { getRouter } from '../../src/router'
-import { renderToStream } from '@tanstack/react-start/server'
+import { createStartHandler, defaultStreamHandler } from '@tanstack/react-start/server'
+
+const handler = createStartHandler(defaultStreamHandler)
 
 export default defineEventHandler(async (event) => {
-  const url = `${getHeader(event, 'x-forwarded-proto') || 'http'}://${getHeader(event, 'host')}${event.node.req.url}`
-  try {
-    const router = getRouter()
-    const markup = await renderToStream({ url, router })
-    return markup
-  } catch (err) {
-    console.error('SSR Error:', err)
-    setResponseStatus(event, 500)
-    return 'Internal Server Error'
-  }
+  const request = toWebRequest(event)
+  const response = await handler(request)
+  return sendWebResponse(event, response)
 })
