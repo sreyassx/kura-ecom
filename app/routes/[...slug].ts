@@ -40,9 +40,26 @@ function toWebRequest(event: any) {
   });
 }
 
+import { createError } from 'h3'
+
 export default defineEventHandler(async (event) => {
   const request = toWebRequest(event)
-  return handler(request)
+  try {
+    const response = await handler(request)
+    return response
+  } catch (err: any) {
+    console.error("🔥 Error in TanStack Start handler:", err)
+    console.error("🔥 Error stack:", err?.stack)
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'Internal Server Error in Handler',
+      message: err?.message || String(err),
+      data: {
+        stack: err?.stack
+      }
+    })
+  }
 })
+
 
 
