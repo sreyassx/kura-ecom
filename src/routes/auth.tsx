@@ -18,7 +18,7 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const { mode: initial } = Route.useSearch();
-  const [mode, setMode] = useState<"signin" | "signup">(initial ?? "signin");
+  const [mode, setMode] = useState<"signin" | "signup" | "forgot">(initial ?? "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -28,8 +28,8 @@ function AuthPage() {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (user) navigate({ to: "/account" });
-  }, [user, navigate]);
+    if (user && mode !== "forgot") navigate({ to: "/account" });
+  }, [user, navigate, mode]);
 
   const signupSchema = z.object({
     email: z.string().email("Invalid email format"),
@@ -91,6 +91,23 @@ function AuthPage() {
           toast.success("Welcome!");
         }
       }
+    } else if (mode === "forgot") {
+      const emailValidation = z.string().email().safeParse(email);
+      if (!emailValidation.success) {
+        toast.error("Please enter a valid email address.");
+        setBusy(false);
+        return;
+      }
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/reset-password',
+      });
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success("Check your email for a password reset link!");
+        setMode("signin");
+      }
     } else {
       const emailValidation = z.string().email().safeParse(email);
       if (!emailValidation.success || !password) {
@@ -114,11 +131,13 @@ function AuthPage() {
       <div className="mx-auto max-w-md px-4 py-12">
         <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
           <h1 className="font-display text-2xl font-bold">
-            {mode === "signup" ? "Create your account" : "Welcome back"}
+            {mode === "signup" ? "Create your account" : mode === "forgot" ? "Reset your password" : "Welcome back"}
           </h1>
           <p className="mt-1 text-sm text-ink-muted">
             {mode === "signup"
               ? "First signup becomes the store admin."
+              : mode === "forgot"
+              ? "Enter your email address to receive a recovery link."
               : "Sign in to track orders and save your wishlist."}
           </p>
           <form onSubmit={submit} className="mt-5 space-y-3">
@@ -126,24 +145,46 @@ function AuthPage() {
               <Field label="Full name" value={name} onChange={setName} autoComplete="name" />
             )}
             <Field label="Email" type="email" value={email} onChange={setEmail} autoComplete="email" />
-            <Field
-              label="Password"
-              type="password"
-              value={password}
-              onChange={setPassword}
-              autoComplete={mode === "signup" ? "new-password" : "current-password"}
-            />
+            {mode !== "forgot" && (
+              <Field
+                label="Password"
+                type="password"
+                value={password}
+                onChange={setPassword}
+                autoComplete={mode === "signup" ? "new-password" : "current-password"}
+              />
+            )}
+            {mode === "signin" && (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setMode("forgot")}
+                  className="text-xs text-ink-muted hover:text-primary hover:underline"
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
             <Button type="submit" disabled={busy} size="lg" className="w-full rounded-full">
-              {busy ? "…" : mode === "signup" ? "Create account" : "Sign in"}
+              {busy ? "…" : mode === "signup" ? "Create account" : mode === "forgot" ? "Send reset link" : "Sign in"}
             </Button>
           </form>
 
-          <button
-            onClick={() => setMode(mode === "signup" ? "signin" : "signup")}
-            className="mt-4 w-full text-center text-sm text-ink-muted hover:text-primary"
-          >
-            {mode === "signup" ? "Already have an account? Sign in" : "New here? Create an account"}
-          </button>
+          {mode === "forgot" ? (
+            <button
+              onClick={() => setMode("signin")}
+              className="mt-4 w-full text-center text-sm text-ink-muted hover:text-primary"
+            >
+              Back to sign in
+            </button>
+          ) : (
+            <button
+              onClick={() => setMode(mode === "signup" ? "signin" : "signup")}
+              className="mt-4 w-full text-center text-sm text-ink-muted hover:text-primary"
+            >
+              {mode === "signup" ? "Already have an account? Sign in" : "New here? Create an account"}
+            </button>
+          )}
         </div>
 
         <p className="mt-4 text-center text-xs text-ink-muted">

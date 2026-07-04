@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WishlistRouteImport } from './routes/wishlist'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as CartRouteImport } from './routes/cart'
@@ -24,6 +25,11 @@ import { Route as ProductsSlugRouteImport } from './routes/products/$slug'
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
   path: '/wishlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OrdersRoute = OrdersRouteImport.update({
@@ -86,6 +92,7 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/help': typeof HelpRoute
   '/orders': typeof OrdersRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/wishlist': typeof WishlistRoute
   '/products/$slug': typeof ProductsSlugRoute
   '/products/': typeof ProductsIndexRoute
@@ -99,6 +106,7 @@ export interface FileRoutesByTo {
   '/cart': typeof CartRoute
   '/help': typeof HelpRoute
   '/orders': typeof OrdersRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/wishlist': typeof WishlistRoute
   '/products/$slug': typeof ProductsSlugRoute
   '/products': typeof ProductsIndexRoute
@@ -113,6 +121,7 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/help': typeof HelpRoute
   '/orders': typeof OrdersRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/wishlist': typeof WishlistRoute
   '/products/$slug': typeof ProductsSlugRoute
   '/products/': typeof ProductsIndexRoute
@@ -128,6 +137,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/help'
     | '/orders'
+    | '/reset-password'
     | '/wishlist'
     | '/products/$slug'
     | '/products/'
@@ -141,6 +151,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/help'
     | '/orders'
+    | '/reset-password'
     | '/wishlist'
     | '/products/$slug'
     | '/products'
@@ -154,6 +165,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/help'
     | '/orders'
+    | '/reset-password'
     | '/wishlist'
     | '/products/$slug'
     | '/products/'
@@ -168,6 +180,7 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   HelpRoute: typeof HelpRoute
   OrdersRoute: typeof OrdersRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   WishlistRoute: typeof WishlistRoute
   ProductsSlugRoute: typeof ProductsSlugRoute
   ProductsIndexRoute: typeof ProductsIndexRoute
@@ -180,6 +193,13 @@ declare module '@tanstack/react-router' {
       path: '/wishlist'
       fullPath: '/wishlist'
       preLoaderRoute: typeof WishlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/orders': {
@@ -264,6 +284,7 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   HelpRoute: HelpRoute,
   OrdersRoute: OrdersRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   WishlistRoute: WishlistRoute,
   ProductsSlugRoute: ProductsSlugRoute,
   ProductsIndexRoute: ProductsIndexRoute,
