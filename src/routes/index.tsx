@@ -129,7 +129,7 @@ function HomeComponent() {
                 />
               ) : (
                 <span 
-                  className="relative inline-block bg-gradient-to-r from-sage-700 via-primary to-amber-500 bg-clip-text text-transparent font-display text-7xl sm:text-9xl font-black tracking-wide select-none logo-glitch"
+                  className="relative inline-block bg-gradient-to-r from-[#A3B18A] via-[#87A96B] to-[#4A5D3A] bg-clip-text text-transparent font-display text-7xl sm:text-9xl font-black tracking-wide select-none logo-glitch"
                   data-text={homeConfig?.store_name || "Kura"}
                 >
                   {homeConfig?.store_name || "Kura"}
@@ -138,7 +138,7 @@ function HomeComponent() {
             </div>
 
             <h1 className="font-display text-4xl font-black tracking-tight sm:text-6xl text-foreground leading-[1.1] sm:tracking-[-0.03em]">
-              {before}<span className="bg-gradient-to-r from-sage-700 via-primary to-amber-500 bg-clip-text text-transparent">{last}</span>
+              {before}<span className="bg-gradient-to-r from-[#A3B18A] via-[#87A96B] to-[#4A5D3A] bg-clip-text text-transparent">{last}</span>
             </h1>
             
             <div className="mt-6 sm:mt-8 mb-2">
