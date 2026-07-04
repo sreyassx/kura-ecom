@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && nitro build",
+    "build": "vite build && cp -r .vercel/output/static/assets ./.vite-assets-backup && nitro build && mkdir -p .vercel/output/static && cp -r ./.vite-assets-backup .vercel/output/static/assets && rm -rf ./.vite-assets-backup",
     "start": "vite preview",
     "postinstall": "node scripts/patch-nitro.js"
   },
