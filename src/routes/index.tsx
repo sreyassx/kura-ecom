@@ -112,24 +112,24 @@ function HomeComponent() {
         {/* Hero Section */}
         <div className="relative overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background pt-20 pb-12 sm:pt-32 sm:pb-20">
           {/* Subtle grid pattern background */}
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(99,102,241,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(99,102,241,0.04)_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_at_center,black_60%,transparent_100%)] pointer-events-none" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(110,138,87,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(110,138,87,0.06)_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_at_center,black_60%,transparent_100%)] pointer-events-none" />
 
           {/* Glassmorphic/Mesh Blur shapes */}
-          <div className="absolute top-[-10%] left-[-10%] w-[45%] aspect-square rounded-full bg-indigo-500/10 blur-[130px] pointer-events-none" />
-          <div className="absolute top-[20%] right-[-10%] w-[40%] aspect-square rounded-full bg-violet-500/10 blur-[110px] pointer-events-none" />
+          <div className="absolute top-[-10%] left-[-10%] w-[45%] aspect-square rounded-full bg-sage-400/10 blur-[130px] pointer-events-none" />
+          <div className="absolute top-[20%] right-[-10%] w-[40%] aspect-square rounded-full bg-sage-600/10 blur-[110px] pointer-events-none" />
 
           <div className="relative z-10 mx-auto max-w-7xl px-4 text-center">
             {/* Centered Animated Logo */}
             <div className="flex flex-col items-center justify-center mb-12 sm:mb-16">
               {homeConfig?.store_logo_url ? (
                 <img 
-                  src={homeConfig.store_logo_url} 
-                  alt={homeConfig.store_name || "Kura"} 
-                  className="h-20 w-auto object-contain select-none pointer-events-none" 
+                   src={homeConfig.store_logo_url} 
+                   alt={homeConfig.store_name || "Kura"} 
+                   className="h-20 w-auto object-contain select-none pointer-events-none" 
                 />
               ) : (
                 <span 
-                  className="relative inline-block bg-gradient-to-r from-primary via-indigo-500 to-violet-600 bg-clip-text text-transparent font-display text-7xl sm:text-9xl font-black tracking-wide select-none logo-glitch"
+                  className="relative inline-block bg-gradient-to-r from-sage-700 via-primary to-amber-500 bg-clip-text text-transparent font-display text-7xl sm:text-9xl font-black tracking-wide select-none logo-glitch"
                   data-text={homeConfig?.store_name || "Kura"}
                 >
                   {homeConfig?.store_name || "Kura"}
@@ -138,7 +138,7 @@ function HomeComponent() {
             </div>
 
             <h1 className="font-display text-4xl font-black tracking-tight sm:text-6xl text-foreground leading-[1.1] sm:tracking-[-0.03em]">
-              {before}<span className="bg-gradient-to-r from-primary via-indigo-500 to-violet-600 bg-clip-text text-transparent">{last}</span>
+              {before}<span className="bg-gradient-to-r from-sage-700 via-primary to-amber-500 bg-clip-text text-transparent">{last}</span>
             </h1>
             
             <div className="mt-6 sm:mt-8 mb-2">

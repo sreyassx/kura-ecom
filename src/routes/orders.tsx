@@ -131,7 +131,7 @@ function OrdersPage() {
                           o.status === "delivered"
                             ? "bg-emerald-500/10 text-emerald-600"
                             : o.status === "shipped"
-                            ? "bg-indigo-500/10 text-indigo-600"
+                            ? "bg-blue-500/10 text-blue-600"
                             : "bg-amber-500/10 text-amber-600"
                         }`}
                       >

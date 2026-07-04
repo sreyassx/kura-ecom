@@ -15,6 +15,18 @@ export default {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
         },
+        sage: {
+          50: '#F4F7F2',
+          100: '#E9EFE5',
+          200: '#D4DEC9',
+          300: '#B8C9A8',
+          400: '#9AB387',
+          500: '#7E9D68', // Sage green primary accent
+          600: '#647F52',
+          700: '#4D613F',
+          800: '#35432B',
+          900: '#1E2619',
+        },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",

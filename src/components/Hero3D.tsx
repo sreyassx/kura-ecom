@@ -93,7 +93,7 @@ export function Hero3D({ products, isLoading }: Hero3DProps) {
     <div className="relative mx-auto mt-8 flex min-h-[380px] max-w-5xl items-center justify-center px-4 py-8 sm:min-h-[480px]">
       {/* Decorative premium radial mesh glows behind collage */}
       <div className="absolute left-1/4 top-1/4 h-64 w-64 rounded-full bg-primary/10 blur-[90px] pointer-events-none" />
-      <div className="absolute right-1/4 bottom-1/4 h-64 w-64 rounded-full bg-violet-500/10 blur-[90px] pointer-events-none" />
+      <div className="absolute right-1/4 bottom-1/4 h-64 w-64 rounded-full bg-sage-600/10 blur-[90px] pointer-events-none" />
 
       {/* Collage Container */}
       <div className="relative flex w-full max-w-3xl items-center justify-center gap-3 sm:gap-6 md:gap-8">

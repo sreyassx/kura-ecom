@@ -60,8 +60,8 @@ function AccountPage() {
       info: ordersCount === 0 ? "No orders yet" : `${ordersCount} order${ordersCount !== 1 ? "s" : ""} placed`,
       href: "/orders",
       icon: Package,
-      iconColor: "text-indigo-500",
-      bgColor: "bg-indigo-500/10",
+      iconColor: "text-sage-600",
+      bgColor: "bg-sage-100/50",
     },
     {
       title: "Wishlist",

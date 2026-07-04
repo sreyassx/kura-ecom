@@ -550,7 +550,7 @@ function CartPage() {
                 </div>
 
                 {/* Razorpay Integration Info Box */}
-                <div className="rounded-xl bg-indigo-50/50 p-4 border border-indigo-100 text-xs text-primary space-y-1.5">
+                <div className="rounded-xl bg-sage-50/50 p-4 border border-sage-200/50 text-xs text-primary space-y-1.5">
                   <p className="font-bold">🔒 Secure Sandbox Checkout</p>
                   <p className="leading-relaxed">This checkout is ready to be swapped with <strong>Razorpay</strong>. Placing this order will mock the payment success state and save the order in the database.</p>
                 </div>
