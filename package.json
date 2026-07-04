@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "nitro build && vite build",
     "start": "vite preview",
     "postinstall": "node scripts/patch-nitro.js"
   },

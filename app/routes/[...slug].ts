@@ -42,7 +42,7 @@ function toWebRequest(event: any) {
 
 export default defineEventHandler(async (event) => {
   const request = toWebRequest(event)
-  const response = await handler(request)
-  return sendWebResponse(event, response)
+  return handler(request)
 })
+
 
