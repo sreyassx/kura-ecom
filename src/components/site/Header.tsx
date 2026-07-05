@@ -1,5 +1,5 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { ShoppingBag, Search, User as UserIcon, LayoutDashboard, LogOut, Menu } from "lucide-react";
+import { ShoppingBag, Search, User as UserIcon, LayoutDashboard, LogOut, Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useCart } from "@/lib/cart";
@@ -32,6 +32,7 @@ export function Header() {
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const navigate = useNavigate();
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
 
   useEffect(() => {
     if (lastAddedAt) setBump((b) => b + 1);
@@ -172,6 +173,16 @@ export function Header() {
 
 
         <div className="flex items-center gap-1 sm:gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="sm:hidden text-foreground hover:bg-muted"
+            onClick={() => setShowMobileSearch(!showMobileSearch)}
+            aria-label="Search"
+          >
+            <Search className="h-5 w-5" />
+          </Button>
+
           <Link to="/products" className="hidden text-sm text-ink-muted hover:text-foreground sm:inline">
             Shop
           </Link>
@@ -245,6 +256,77 @@ export function Header() {
           </Link>
         </div>
       </div>
+
+      {/* Mobile search input field */}
+      <AnimatePresence>
+        {showMobileSearch && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="border-t border-border/60 bg-background px-4 py-2.5 sm:hidden relative"
+          >
+            <form onSubmit={onSearch} className="relative w-full">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                value={q}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                placeholder="Search trending, streetwear, gadgets…"
+                className="h-9 w-full rounded-full border border-border bg-surface pl-9 pr-8 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                autoFocus
+              />
+              {q.trim() && (
+                <button
+                  type="button"
+                  onClick={() => handleSearchChange("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-foreground"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </form>
+
+            {/* Suggestions Dropdown for mobile */}
+            {showMobileSearch && q.trim().length > 0 && (
+              <div className="absolute left-4 right-4 mt-2 rounded-2xl border border-border bg-card p-2 shadow-lg z-50 max-h-60 overflow-y-auto">
+                {suggestions.length === 0 ? (
+                  <div className="p-3 text-xs text-ink-muted text-center">
+                    No matching drops found.
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-ink-muted px-3 py-1">
+                      Matching Drops
+                    </p>
+                    {suggestions.map((item) => (
+                      <Link
+                        key={item.id}
+                        to="/products/$slug"
+                        params={{ slug: item.slug }}
+                        onClick={() => {
+                          setShowMobileSearch(false);
+                        }}
+                        className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-muted transition text-left"
+                      >
+                        {item.image_url ? (
+                          <img src={item.image_url} className="h-8 w-8 rounded-lg object-cover" alt="" />
+                        ) : (
+                          <div className="h-8 w-8 rounded-lg bg-muted" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold text-foreground truncate">{item.name}</p>
+                          <p className="text-[10px] text-ink-muted">{formatPrice(item.price_cents)}</p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }

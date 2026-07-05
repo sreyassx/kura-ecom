@@ -1,5 +1,5 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { ShoppingBag, Search, User as UserIcon, LayoutDashboard, LogOut, Menu } from "lucide-react";
+import { ShoppingBag, Search, User as UserIcon, LayoutDashboard, LogOut, Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useCart } from "@/lib/cart";
@@ -21,6 +21,7 @@ export function Header() {
   const search = useSearch({ strict: false }) as { q?: string };
   const [q, setQ] = useState(search.q || "");
   const navigate = useNavigate();
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
 
   useEffect(() => {
     if (lastAddedAt) setBump((b) => b + 1);
@@ -66,6 +67,16 @@ export function Header() {
         </form>
 
         <div className="flex items-center gap-1 sm:gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="sm:hidden text-foreground hover:bg-muted"
+            onClick={() => setShowMobileSearch(!showMobileSearch)}
+            aria-label="Search"
+          >
+            <Search className="h-5 w-5" />
+          </Button>
+
           <Link to="/products" className="hidden text-sm text-ink-muted hover:text-foreground sm:inline">
             Shop
           </Link>
@@ -139,6 +150,39 @@ export function Header() {
           </Link>
         </div>
       </div>
+
+      {/* Mobile search input field */}
+      <AnimatePresence>
+        {showMobileSearch && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="border-t border-border/60 bg-background px-4 py-2.5 sm:hidden relative"
+          >
+            <form onSubmit={onSearch} className="relative w-full">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                value={q}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                placeholder="Search trending, streetwear, gadgets…"
+                className="h-9 w-full rounded-full border border-border bg-surface pl-9 pr-8 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                autoFocus
+              />
+              {q.trim() && (
+                <button
+                  type="button"
+                  onClick={() => handleSearchChange("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-foreground"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
