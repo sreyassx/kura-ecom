@@ -27,13 +27,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function fetchUserRole(userId: string): Promise<string | null> {
     console.log(`[Admin Role Check] Starting role check for user ID: ${userId}`);
     
-    try {
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .maybeSingle();
+    const roleQuery = supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .maybeSingle();
 
+    const timeoutPromise = new Promise<null>((resolve) =>
+      setTimeout(() => {
+        console.warn(`[Admin Role Check] Query timed out for user ID ${userId}`);
+        resolve(null);
+      }, 4000)
+    );
+
+    try {
+      const result = await Promise.race([roleQuery, timeoutPromise]);
+      if (!result) return null;
+      
+      const { data, error } = result as any;
       if (error) {
         console.error(`[Admin Role Check] Error querying user_roles for user ID ${userId}:`, error);
         return null;

@@ -81,6 +81,20 @@ function Admin() {
 
   const navigate = useNavigate();
   const [tab, setTab] = useState<"overview" | "products" | "categories" | "orders" | "homepage" | "branding">("overview");
+  const [localLoading, setLocalLoading] = useState(true);
+
+  useEffect(() => {
+    if (!loading) {
+      setLocalLoading(false);
+    }
+  }, [loading]);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setLocalLoading(false);
+    }, 5000);
+    return () => clearTimeout(t);
+  }, []);
   const [debugInfo, setDebugInfo] = useState<{
     userId: string | null;
     roleData: any;
@@ -126,7 +140,7 @@ function Admin() {
     console.log(`[Admin Access Routing Check] User ID: ${user?.id || 'none'}, IsAdmin permission: ${isAdmin}`);
   }, [user, isAdmin, loading]);
 
-  if (loading) {
+  if (localLoading) {
     return (
       <SiteLayout>
         <div className="mx-auto max-w-7xl px-4 py-16 text-center">
