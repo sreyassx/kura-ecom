@@ -456,11 +456,11 @@ function ProductDetail() {
                     style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                   >
                     {images.map((url, i) => (
-                      <div key={url} className="h-full w-full shrink-0 snap-center select-none">
+                      <div key={url} className="h-full w-full shrink-0 snap-center select-none flex items-center justify-center bg-surface">
                         <img
                           src={url}
                           alt={`${product.name} - image ${i + 1}`}
-                          className="h-full w-full object-contain pointer-events-none"
+                          className="max-w-full max-h-full w-auto h-auto object-contain pointer-events-none"
                         />
                       </div>
                     ))}
