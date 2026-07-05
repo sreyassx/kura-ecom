@@ -25,26 +25,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   async function fetchUserRole(userId: string): Promise<string | null> {
-    console.log(`Starting role check for user: ${userId}`);
+    console.log(`[Admin Role Check] Starting role check for user ID: ${userId}`);
     
-    const roleQuery = supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .single();
-
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error("Role query timed out")), 5000)
-    );
-
     try {
-      const result = await Promise.race([roleQuery, timeoutPromise]) as any;
-      if (result.error) throw result.error;
-      const role = result.data?.role || null;
-      console.log(`Role query completed: ${role}`);
-      return role;
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (error) {
+        console.error(`[Admin Role Check] Error querying user_roles for user ID ${userId}:`, error);
+        return null;
+      }
+      
+      console.log(`[Admin Role Check] Query succeeded for user ID ${userId}. Database row:`, data);
+      return data?.role || null;
     } catch (err: any) {
-      console.error(`Failed to fetch admin role: ${err.message || err}`);
+      console.error(`[Admin Role Check] Unexpected failure querying role for user ID ${userId}:`, err.message || err);
       return null;
     }
   }

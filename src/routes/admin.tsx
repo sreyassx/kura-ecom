@@ -86,18 +86,18 @@ function Admin() {
   useEffect(() => {
     if (loading) return;
 
-    console.log(`[Admin Access Check] User ID: ${user?.id || 'none'}, IsAdmin state: ${isAdmin}`);
+    console.log(`[Admin Access Routing Check] User ID: ${user?.id || 'none'}, IsAdmin permission: ${isAdmin}`);
 
     if (!user) {
-      console.warn("[Admin Access Check] Denied: User is not authenticated.");
+      console.warn("[Admin Access Routing Check] Denied: User is not authenticated.");
       toast.error("Please log in to access the admin panel.");
       navigate({ to: "/auth" });
     } else if (!isAdmin) {
-      console.warn(`[Admin Access Check] Denied: User ${user.id} does not have the admin role.`);
+      console.warn(`[Admin Access Routing Check] Denied: User ${user.id} does not have the admin role.`);
       toast.error("Access denied: You must be an administrator.");
       navigate({ to: "/auth" });
     } else {
-      console.log(`✅ Admin access granted for user ${user.id}`);
+      console.log(`[Admin Access Routing Check] ✅ Access granted for admin user ${user.id}`);
     }
   }, [user, isAdmin, loading, navigate]);
 
