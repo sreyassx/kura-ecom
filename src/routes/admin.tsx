@@ -81,7 +81,47 @@ function Admin() {
 
   const navigate = useNavigate();
   const [tab, setTab] = useState<"overview" | "products" | "categories" | "orders" | "homepage" | "branding">("overview");
+  const [debugInfo, setDebugInfo] = useState<{
+    userId: string | null;
+    roleData: any;
+    roleError: any;
+    rlsStatus: string;
+  } | null>(null);
+  const [showDebug, setShowDebug] = useState(true);
 
+
+  useEffect(() => {
+    async function runDebug() {
+      if (!user) return;
+      try {
+        const { data, error } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        setDebugInfo({
+          userId: user.id,
+          roleData: data,
+          roleError: error,
+          rlsStatus: error
+            ? (error.code === '42501' || error.message?.includes('policy') ? 'RLS is blocking the query (42501)' : `Query failed: ${error.message}`)
+            : (data ? 'RLS allows query' : 'Query succeeded but returned NO rows')
+        });
+      } catch (err: any) {
+        setDebugInfo({
+          userId: user.id,
+          roleData: null,
+          roleError: err.message || err,
+          rlsStatus: "Unexpected exception"
+        });
+      }
+    }
+
+    if (user) {
+      runDebug();
+    }
+  }, [user]);
 
   useEffect(() => {
     if (loading) return;
@@ -91,15 +131,66 @@ function Admin() {
     if (!user) {
       console.warn("[Admin Access Routing Check] Denied: User is not authenticated.");
       toast.error("Please log in to access the admin panel.");
-      navigate({ to: "/auth" });
+      const t = setTimeout(() => navigate({ to: "/auth" }), 12000);
+      return () => clearTimeout(t);
     } else if (!isAdmin) {
       console.warn(`[Admin Access Routing Check] Denied: User ${user.id} does not have the admin role.`);
       toast.error("Access denied: You must be an administrator.");
-      navigate({ to: "/auth" });
+      const t = setTimeout(() => navigate({ to: "/auth" }), 12000);
+      return () => clearTimeout(t);
     } else {
       console.log(`[Admin Access Routing Check] ✅ Access granted for admin user ${user.id}`);
     }
   }, [user, isAdmin, loading, navigate]);
+
+  const debugPanel = showDebug && debugInfo && (
+    <div className="mx-auto max-w-7xl px-4 mt-4 animate-fadeIn">
+      <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-xs text-amber-900 shadow-sm relative text-left">
+        <button
+          type="button"
+          onClick={() => setShowDebug(false)}
+          className="absolute top-2 right-2 rounded p-1 hover:bg-amber-100/55 text-amber-600 transition"
+          title="Dismiss debug info"
+        >
+          <X className="h-4 w-4" />
+        </button>
+        <p className="font-bold text-sm mb-2 text-amber-800 flex items-center gap-1.5">
+          <span className="inline-block h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
+          Visual Debug Panel (Mobile Access Check)
+        </p>
+        <div className="grid gap-2 sm:grid-cols-2">
+          <div>
+            <span className="font-semibold text-amber-700">Current User ID:</span>{" "}
+            <code className="bg-amber-100/60 px-1 py-0.5 rounded font-mono break-all">{debugInfo.userId || 'Not Logged In'}</code>
+          </div>
+          <div>
+            <span className="font-semibold text-amber-700">RLS / Query Status:</span>{" "}
+            <span className={`font-semibold ${debugInfo.roleError ? 'text-destructive' : 'text-emerald-700'}`}>
+              {debugInfo.rlsStatus}
+            </span>
+          </div>
+          <div>
+            <span className="font-semibold text-amber-700">Role Query Data:</span>{" "}
+            <code className="bg-amber-100/60 px-1 py-0.5 rounded font-mono">{JSON.stringify(debugInfo.roleData)}</code>
+          </div>
+          <div>
+            <span className="font-semibold text-amber-700">Admin Check Result:</span>{" "}
+            <span className={`font-bold ${isAdmin ? 'text-emerald-700' : 'text-destructive'}`}>
+              {isAdmin ? 'PASSED (Admin)' : 'FAILED (Not Admin)'}
+            </span>
+          </div>
+        </div>
+        {debugInfo.roleError && (
+          <div className="mt-2 pt-2 border-t border-amber-200/50">
+            <span className="font-semibold text-amber-700">Exact Query Error:</span>{" "}
+            <pre className="mt-1 bg-amber-100/60 p-1.5 rounded font-mono overflow-x-auto whitespace-pre-wrap break-all text-[10px]">
+              {JSON.stringify(debugInfo.roleError, null, 2)}
+            </pre>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   if (loading) {
     return (
@@ -115,9 +206,10 @@ function Admin() {
   if (!user || !isAdmin) {
     return (
       <SiteLayout>
+        {debugPanel}
         <div className="mx-auto max-w-7xl px-4 py-16 text-center text-red-600">
           <p className="font-semibold text-lg">Access Denied</p>
-          <p className="text-sm mt-1 text-ink-muted">You must be logged in as an administrator to view this page. Redirecting to auth...</p>
+          <p className="text-sm mt-1 text-ink-muted">You must be logged in as an administrator to view this page. Redirecting in 12 seconds...</p>
         </div>
       </SiteLayout>
     );
@@ -125,6 +217,7 @@ function Admin() {
 
   return (
     <SiteLayout>
+      {debugPanel}
       <div className="mx-auto max-w-7xl px-4 py-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
