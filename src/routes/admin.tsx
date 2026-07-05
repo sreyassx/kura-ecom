@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Edit3, Trash2, Package, DollarSign, AlertTriangle, X, Upload } from "lucide-react";
+import { Plus, Edit3, Trash2, Package, DollarSign, AlertTriangle, X, Upload, Search, SlidersHorizontal, ChevronDown } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -378,6 +378,17 @@ const blankForm = (): ProductForm => ({
 function ProductsPanel() {
   const qc = useQueryClient();
   const [editing, setEditing] = useState<ProductForm | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<
+    | "recently_added"
+    | "name_asc"
+    | "name_desc"
+    | "price_asc"
+    | "price_desc"
+    | "stock_asc"
+    | "stock_desc"
+    | "featured_first"
+  >("recently_added");
 
   const { data: products } = useQuery({
     queryKey: ["admin-products"],
@@ -399,6 +410,40 @@ function ProductsPanel() {
       return data;
     },
   });
+
+  const filteredAndSortedProducts = useMemo(() => {
+    if (!products) return [];
+
+    let result = products.filter((p: any) =>
+      p.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    result = [...result].sort((a: any, b: any) => {
+      switch (sortBy) {
+        case "name_asc":
+          return a.name.localeCompare(b.name);
+        case "name_desc":
+          return b.name.localeCompare(a.name);
+        case "price_asc":
+          return a.price_cents - b.price_cents;
+        case "price_desc":
+          return b.price_cents - a.price_cents;
+        case "stock_asc":
+          return a.stock - b.stock;
+        case "stock_desc":
+          return b.stock - a.stock;
+        case "featured_first":
+          if (a.featured && !b.featured) return -1;
+          if (!a.featured && b.featured) return 1;
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case "recently_added":
+        default:
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+    });
+
+    return result;
+  }, [products, searchQuery, sortBy]);
 
   const save = useMutation({
     mutationFn: async (f: ProductForm) => {
@@ -464,10 +509,70 @@ function ProductsPanel() {
 
   return (
     <div>
-      <div className="mb-4 flex justify-end">
-        <Button onClick={() => setEditing(blankForm())} className="rounded-full">
-          <Plus className="mr-1 h-4 w-4" /> Add product
-        </Button>
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 max-w-2xl">
+          <div className="relative flex-1">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-ink-muted">
+              <Search className="h-4 w-4" />
+            </span>
+            <input
+              type="text"
+              placeholder="Search products by name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full rounded-full border border-border bg-card py-2 pl-9 pr-10 text-sm placeholder-ink-muted/70 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all duration-200"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-ink-muted hover:text-foreground transition"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          
+          <div className="relative min-w-[180px]">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-ink-muted pointer-events-none">
+              <SlidersHorizontal className="h-3.5 w-3.5" />
+            </span>
+            <select
+              value={sortBy}
+              onChange={(e: any) => setSortBy(e.target.value)}
+              className="w-full appearance-none rounded-full border border-border bg-card py-2 pl-9 pr-8 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all duration-200"
+            >
+              <option value="recently_added">Recently Added</option>
+              <option value="featured_first">Featured First</option>
+              <option value="name_asc">Name (A-Z)</option>
+              <option value="name_desc">Name (Z-A)</option>
+              <option value="price_asc">Price (Low to High)</option>
+              <option value="price_desc">Price (High to Low)</option>
+              <option value="stock_asc">Stock (Low to High)</option>
+              <option value="stock_desc">Stock (High to Low)</option>
+            </select>
+            <span className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-ink-muted">
+              <ChevronDown className="h-4 w-4" />
+            </span>
+          </div>
+        </div>
+
+        <div>
+          <Button onClick={() => setEditing(blankForm())} className="rounded-full w-full sm:w-auto">
+            <Plus className="mr-1 h-4 w-4" /> Add product
+          </Button>
+        </div>
+      </div>
+
+      <div className="mb-3 text-xs text-ink-muted font-medium flex items-center justify-between px-1">
+        <div>
+          {filteredAndSortedProducts.length} {filteredAndSortedProducts.length === 1 ? "product" : "products"} found
+          {searchQuery && (
+            <span>
+              {" "}for "<span className="font-semibold text-foreground">{searchQuery}</span>"
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-border bg-card">
@@ -482,7 +587,7 @@ function ProductsPanel() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {products?.map((p: any) => (
+            {filteredAndSortedProducts.map((p: any) => (
               <tr key={p.id}>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
