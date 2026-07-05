@@ -445,7 +445,7 @@ function ProductDetail() {
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Product Image Gallery */}
           <div>
-            <div className="relative group overflow-hidden rounded-2xl border border-border bg-surface aspect-square shadow-sm">
+            <div className="relative group overflow-hidden rounded-2xl border border-border bg-surface aspect-square shadow-sm max-h-[350px] md:max-h-[500px] w-full">
               {images.length > 0 ? (
                 <>
                   {/* Scrollable image container */}
@@ -460,7 +460,7 @@ function ProductDetail() {
                         <img
                           src={url}
                           alt={`${product.name} - image ${i + 1}`}
-                          className="h-full w-full object-cover pointer-events-none"
+                          className="h-full w-full object-contain pointer-events-none"
                         />
                       </div>
                     ))}
