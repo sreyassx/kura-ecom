@@ -6,7 +6,7 @@ import { formatPrice } from '@/lib/format'
 import { useCart } from '@/lib/cart'
 import { useAuth } from '@/lib/auth'
 import { Heart, ShoppingBag, Star, ChevronLeft, ChevronRight, X, MessageSquare, Calendar } from 'lucide-react'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 
@@ -33,6 +33,13 @@ function ProductDetail() {
   const [showSizeGuide, setShowSizeGuide] = useState(false)
   const [selectedOptions, setSelectedOptions] = useState<{ [name: string]: string }>({})
   const [showSpecs, setShowSpecs] = useState(false)
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Review form state
   const [reviewRating, setReviewRating] = useState(5)
@@ -460,7 +467,14 @@ function ProductDetail() {
                         <img
                           src={url}
                           alt={`${product.name} - image ${i + 1}`}
-                          className="max-w-full max-h-[350px] md:max-h-[500px] w-auto h-auto object-contain pointer-events-none"
+                          className="pointer-events-none"
+                          style={{
+                            maxHeight: windowWidth >= 768 ? '500px' : '350px',
+                            maxWidth: '100%',
+                            width: 'auto',
+                            height: 'auto',
+                            objectFit: 'contain'
+                          }}
                         />
                       </div>
                     ))}
