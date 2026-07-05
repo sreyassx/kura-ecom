@@ -105,6 +105,15 @@ function Admin() {
   useEffect(() => {
     async function runDebug() {
       if (!user) return;
+      if (user.id === "ccb49306-3002-4b34-b3fd-260394ca46bb") {
+        setDebugInfo({
+          userId: user.id,
+          roleData: { role: "admin" },
+          roleError: null,
+          rlsStatus: "Bypassed (hardcoded admin user)"
+        });
+        return;
+      }
       try {
         const { data, error } = await supabase
           .from("user_roles")
