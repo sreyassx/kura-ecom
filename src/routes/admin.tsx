@@ -8,7 +8,7 @@ import { SiteLayout } from "@/components/site/SiteLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 import { formatPrice } from "@/lib/format";
-import { getHomepageConfig, updateSiteSettings } from "@/lib/homepage";
+import { getHomepageConfig, updateSiteSettings, siteSettingsSchema } from "@/lib/homepage";
 
 import React from "react";
 
@@ -1648,23 +1648,35 @@ function HomepagePanel() {
 
   const save = useMutation({
     mutationFn: async () => {
+      const payload = {
+        badge,
+        headline,
+        subheading,
+        announcement_bar: announcement,
+        trust_indicators: trustIndicators,
+        store_name: homeConfig?.store_name || "",
+        store_description: homeConfig?.store_description || "",
+        store_logo_url: homeConfig?.store_logo_url || "",
+        contact_email: homeConfig?.contact_email || "",
+        contact_phone: homeConfig?.contact_phone || "",
+        delivery_policy: homeConfig?.delivery_policy || "",
+        return_policy: homeConfig?.return_policy || "",
+        faq_items: homeConfig?.faq_items || [],
+      };
+
+      const check = siteSettingsSchema.safeParse(payload);
+      if (!check.success) {
+        const errorMsg = check.error.errors.map(err => {
+          const fieldName = err.path.join('.')
+            .replace(/_/g, ' ')
+            .replace(/\b\w/g, c => c.toUpperCase());
+          return `${fieldName}: ${err.message}`;
+        }).join(', ');
+        throw new Error(errorMsg);
+      }
+
       await updateSiteSettings({
-        data: {
-          badge,
-          headline,
-          subheading,
-          announcement_bar: announcement,
-          trust_indicators: trustIndicators,
-          // Keep branding fields
-          store_name: homeConfig?.store_name || "",
-          store_description: homeConfig?.store_description || "",
-          store_logo_url: homeConfig?.store_logo_url || "",
-          contact_email: homeConfig?.contact_email || "",
-          contact_phone: homeConfig?.contact_phone || "",
-          delivery_policy: homeConfig?.delivery_policy || "",
-          return_policy: homeConfig?.return_policy || "",
-          faq_items: homeConfig?.faq_items || [],
-        }
+        data: payload
       });
     },
     onSuccess: () => {
@@ -1672,7 +1684,26 @@ function HomepagePanel() {
       qc.invalidateQueries({ queryKey: ["homepage-config"] });
       toast.success("Homepage content updated!");
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => {
+      console.error("Failed to save homepage settings:", e);
+      let errorMsg = e.message || "An error occurred while saving settings.";
+      
+      if (e.message && (e.message.includes('[') || e.message.includes('{'))) {
+        try {
+          const parsed = JSON.parse(e.message);
+          if (Array.isArray(parsed)) {
+            errorMsg = parsed.map((err: any) => {
+              const field = err.path?.join('.')
+                .replace(/_/g, ' ')
+                .replace(/\b\w/g, (c: string) => c.toUpperCase()) || 'Field';
+              return `${field}: ${err.message}`;
+            }).join(', ');
+          }
+        } catch {}
+      }
+      
+      toast.error(errorMsg);
+    },
   });
 
   const addTrustIndicator = () => {

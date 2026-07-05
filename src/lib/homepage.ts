@@ -29,13 +29,13 @@ export interface HomepageConfig {
   faq_items: FAQItem[];
 }
 
-const faqItemSchema = z.object({
+export const faqItemSchema = z.object({
   id: z.string(),
   question: z.string(),
   answer: z.string(),
 })
 
-const siteSettingsSchema = z.object({
+export const siteSettingsSchema = z.object({
   badge: z.string(),
   headline: z.string(),
   subheading: z.string(),
