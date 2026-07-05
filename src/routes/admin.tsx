@@ -87,8 +87,6 @@ function Admin() {
     roleError: any;
     rlsStatus: string;
   } | null>(null);
-  const [showDebug, setShowDebug] = useState(true);
-
 
   useEffect(() => {
     async function runDebug() {
@@ -125,72 +123,8 @@ function Admin() {
 
   useEffect(() => {
     if (loading) return;
-
     console.log(`[Admin Access Routing Check] User ID: ${user?.id || 'none'}, IsAdmin permission: ${isAdmin}`);
-
-    if (!user) {
-      console.warn("[Admin Access Routing Check] Denied: User is not authenticated.");
-      toast.error("Please log in to access the admin panel.");
-      const t = setTimeout(() => navigate({ to: "/auth" }), 12000);
-      return () => clearTimeout(t);
-    } else if (!isAdmin) {
-      console.warn(`[Admin Access Routing Check] Denied: User ${user.id} does not have the admin role.`);
-      toast.error("Access denied: You must be an administrator.");
-      const t = setTimeout(() => navigate({ to: "/auth" }), 12000);
-      return () => clearTimeout(t);
-    } else {
-      console.log(`[Admin Access Routing Check] ✅ Access granted for admin user ${user.id}`);
-    }
-  }, [user, isAdmin, loading, navigate]);
-
-  const debugPanel = showDebug && debugInfo && (
-    <div className="mx-auto max-w-7xl px-4 mt-4 animate-fadeIn">
-      <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-xs text-amber-900 shadow-sm relative text-left">
-        <button
-          type="button"
-          onClick={() => setShowDebug(false)}
-          className="absolute top-2 right-2 rounded p-1 hover:bg-amber-100/55 text-amber-600 transition"
-          title="Dismiss debug info"
-        >
-          <X className="h-4 w-4" />
-        </button>
-        <p className="font-bold text-sm mb-2 text-amber-800 flex items-center gap-1.5">
-          <span className="inline-block h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
-          Visual Debug Panel (Mobile Access Check)
-        </p>
-        <div className="grid gap-2 sm:grid-cols-2">
-          <div>
-            <span className="font-semibold text-amber-700">Current User ID:</span>{" "}
-            <code className="bg-amber-100/60 px-1 py-0.5 rounded font-mono break-all">{debugInfo.userId || 'Not Logged In'}</code>
-          </div>
-          <div>
-            <span className="font-semibold text-amber-700">RLS / Query Status:</span>{" "}
-            <span className={`font-semibold ${debugInfo.roleError ? 'text-destructive' : 'text-emerald-700'}`}>
-              {debugInfo.rlsStatus}
-            </span>
-          </div>
-          <div>
-            <span className="font-semibold text-amber-700">Role Query Data:</span>{" "}
-            <code className="bg-amber-100/60 px-1 py-0.5 rounded font-mono">{JSON.stringify(debugInfo.roleData)}</code>
-          </div>
-          <div>
-            <span className="font-semibold text-amber-700">Admin Check Result:</span>{" "}
-            <span className={`font-bold ${isAdmin ? 'text-emerald-700' : 'text-destructive'}`}>
-              {isAdmin ? 'PASSED (Admin)' : 'FAILED (Not Admin)'}
-            </span>
-          </div>
-        </div>
-        {debugInfo.roleError && (
-          <div className="mt-2 pt-2 border-t border-amber-200/50">
-            <span className="font-semibold text-amber-700">Exact Query Error:</span>{" "}
-            <pre className="mt-1 bg-amber-100/60 p-1.5 rounded font-mono overflow-x-auto whitespace-pre-wrap break-all text-[10px]">
-              {JSON.stringify(debugInfo.roleError, null, 2)}
-            </pre>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  }, [user, isAdmin, loading]);
 
   if (loading) {
     return (
@@ -206,10 +140,27 @@ function Admin() {
   if (!user || !isAdmin) {
     return (
       <SiteLayout>
-        {debugPanel}
-        <div className="mx-auto max-w-7xl px-4 py-16 text-center text-red-600">
-          <p className="font-semibold text-lg">Access Denied</p>
-          <p className="text-sm mt-1 text-ink-muted">You must be logged in as an administrator to view this page. Redirecting in 12 seconds...</p>
+        <div className="mx-auto max-w-md px-4 py-16 text-center">
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+            <h2 className="text-xl font-bold text-foreground mb-2">Access Denied</h2>
+            <p className="text-sm text-ink-muted leading-relaxed mb-6">
+              You must be logged in as an administrator to view this page.
+            </p>
+            
+            {debugInfo && (
+              <div className="mt-4 border-t border-border/60 pt-4 text-left text-[11px] text-ink-muted bg-muted/10 p-3 rounded-xl space-y-1.5 font-mono">
+                <p className="font-bold text-xs text-foreground uppercase tracking-wider mb-2">System Diagnostics</p>
+                <div>User ID: <span className="text-foreground break-all">{debugInfo.userId || 'none'}</span></div>
+                <div>RLS Status: <span className="text-foreground">{debugInfo.rlsStatus}</span></div>
+                <div>Role Data: <span className="text-foreground">{JSON.stringify(debugInfo.roleData)}</span></div>
+                {debugInfo.roleError && (
+                  <div className="text-destructive mt-1">
+                    Error: {JSON.stringify(debugInfo.roleError)}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </SiteLayout>
     );
@@ -217,7 +168,6 @@ function Admin() {
 
   return (
     <SiteLayout>
-      {debugPanel}
       <div className="mx-auto max-w-7xl px-4 py-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
