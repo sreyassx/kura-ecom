@@ -251,6 +251,15 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
   );
 }
 
+type ProductVariant = {
+  id: string;
+  name: string;
+  value: string;
+  sku?: string;
+  price_adjustment?: number;
+  image_url?: string;
+};
+
 type ProductForm = {
   id?: string;
   name: string;
@@ -269,6 +278,8 @@ type ProductForm = {
   size_guide_type?: "chart" | "image";
   size_guide_image?: string;
   size_guide_chart?: { size: string; chest: string; length: string }[];
+  variants?: ProductVariant[];
+  specifications?: Record<string, string>;
 };
 
 const blankForm = (): ProductForm => ({
@@ -293,7 +304,9 @@ const blankForm = (): ProductForm => ({
     { size: "L", chest: "40 in / 101 cm", length: "30 in / 76 cm" },
     { size: "XL", chest: "42 in / 106 cm", length: "31 in / 79 cm" },
     { size: "2XL", chest: "44 in / 111 cm", length: "32 in / 81 cm" }
-  ]
+  ],
+  variants: [],
+  specifications: {}
 });
 
 function ProductsPanel() {
@@ -346,6 +359,8 @@ function ProductsPanel() {
         images: imagesPayload,
         featured: f.featured,
         active: f.active,
+        variants: f.variants || [],
+        specifications: f.specifications || {},
       };
 
       if (f.id) {
@@ -466,6 +481,8 @@ function ProductsPanel() {
                           size_guide_type: sizeGuideType,
                           size_guide_image: sizeGuideImage,
                           size_guide_chart: sizeGuideChart,
+                          variants: Array.isArray(p.variants) ? p.variants : [],
+                          specifications: p.specifications && typeof p.specifications === 'object' && !Array.isArray(p.specifications) ? p.specifications : {},
                         });
                       }}
                     >
@@ -875,7 +892,199 @@ function ProductDrawer({
               )}
             </div>
           )}
+          {/* Variants Editor Section */}
+        <div className="border-t border-border/60 pt-4 mt-4 space-y-3">
+          <span className="block text-sm font-semibold text-foreground">Product Variants</span>
+          <p className="text-xs text-ink-muted">Add options like Color, Size, Style with optional price adjustments and separate images.</p>
+          
+          <div className="space-y-3">
+            {form.variants?.map((v, index) => (
+              <div key={v.id || index} className="rounded-xl border border-border p-3 bg-muted/10 space-y-2 relative">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const updated = (form.variants || []).filter((_, i) => i !== index);
+                    onChange({ ...form, variants: updated });
+                  }}
+                  className="absolute top-2 right-2 text-ink-muted hover:text-destructive rounded p-1 transition"
+                  title="Remove variant"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] font-bold text-ink-muted uppercase">Option Name</label>
+                    <input
+                      type="text"
+                      value={v.name}
+                      onChange={(e) => {
+                        const updated = [...(form.variants || [])];
+                        updated[index] = { ...updated[index], name: e.target.value };
+                        onChange({ ...form, variants: updated });
+                      }}
+                      placeholder="e.g. Color, Size"
+                      className="w-full h-8 rounded border border-border px-2 text-xs bg-background focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-ink-muted uppercase">Option Value</label>
+                    <input
+                      type="text"
+                      value={v.value}
+                      onChange={(e) => {
+                        const updated = [...(form.variants || [])];
+                        updated[index] = { ...updated[index], value: e.target.value };
+                        onChange({ ...form, variants: updated });
+                      }}
+                      placeholder="e.g. Red, Large"
+                      className="w-full h-8 rounded border border-border px-2 text-xs bg-background focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] font-bold text-ink-muted uppercase">SKU (optional)</label>
+                    <input
+                      type="text"
+                      value={v.sku || ""}
+                      onChange={(e) => {
+                        const updated = [...(form.variants || [])];
+                        updated[index] = { ...updated[index], sku: e.target.value || undefined };
+                        onChange({ ...form, variants: updated });
+                      }}
+                      placeholder="e.g. CHOP-RED"
+                      className="w-full h-8 rounded border border-border px-2 text-xs bg-background focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-ink-muted uppercase">Price Adjustment (₹, optional)</label>
+                    <input
+                      type="number"
+                      value={v.price_adjustment ? String(v.price_adjustment / 100) : ""}
+                      onChange={(e) => {
+                        const updated = [...(form.variants || [])];
+                        const val = e.target.value === "" ? undefined : Math.round(Number(e.target.value) * 100);
+                        updated[index] = { ...updated[index], price_adjustment: val };
+                        onChange({ ...form, variants: updated });
+                      }}
+                      placeholder="e.g. +100 or -50"
+                      className="w-full h-8 rounded border border-border px-2 text-xs bg-background focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-ink-muted uppercase">Variant Image (optional)</label>
+                  <select
+                    value={v.image_url || ""}
+                    onChange={(e) => {
+                      const updated = [...(form.variants || [])];
+                      updated[index] = { ...updated[index], image_url: e.target.value || undefined };
+                      onChange({ ...form, variants: updated });
+                    }}
+                    className="w-full h-8 rounded border border-border px-1.5 text-xs bg-background focus:outline-none"
+                  >
+                    <option value="">— No separate image —</option>
+                    {form.images?.map((url, imgIdx) => (
+                      <option key={url} value={url}>
+                        Product Image {imgIdx + 1}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            ))}
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const newVar = {
+                  id: Math.random().toString(36).substring(2, 9),
+                  name: "",
+                  value: "",
+                };
+                onChange({ ...form, variants: [...(form.variants || []), newVar] });
+              }}
+              className="w-full rounded-full text-xs"
+            >
+              <Plus className="mr-1 h-3.5 w-3.5" /> Add Variant Option
+            </Button>
+          </div>
         </div>
+
+        {/* Specifications Section */}
+        <div className="border-t border-border/60 pt-4 mt-4 space-y-3">
+          <span className="block text-sm font-semibold text-foreground">Specifications</span>
+          <p className="text-xs text-ink-muted">Enter specifications as key-value pairs (e.g. Material: Acacia Wood).</p>
+          
+          <div className="space-y-2">
+            {Object.entries(form.specifications || {}).map(([key, val], idx) => (
+              <div key={idx} className="flex gap-2 items-center">
+                <input
+                  type="text"
+                  value={key}
+                  onChange={(e) => {
+                    const newKey = e.target.value;
+                    const specs = { ...form.specifications };
+                    delete specs[key];
+                    specs[newKey] = val;
+                    onChange({ ...form, specifications: specs });
+                  }}
+                  placeholder="Key (e.g. Weight)"
+                  className="flex-1 h-8 rounded border border-border px-2 text-xs bg-background focus:outline-none"
+                />
+                <input
+                  type="text"
+                  value={val}
+                  onChange={(e) => {
+                    const specs = { ...form.specifications };
+                    specs[key] = e.target.value;
+                    onChange({ ...form, specifications: specs });
+                  }}
+                  placeholder="Value (e.g. 2.5 kg)"
+                  className="flex-1 h-8 rounded border border-border px-2 text-xs bg-background focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const specs = { ...form.specifications };
+                    delete specs[key];
+                    onChange({ ...form, specifications: specs });
+                  }}
+                  className="text-ink-muted hover:text-destructive p-1"
+                  title="Delete specification"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const specs = { ...form.specifications };
+                let tempKey = "New Specification";
+                let counter = 1;
+                while (tempKey in specs) {
+                  tempKey = `New Specification ${counter}`;
+                  counter++;
+                }
+                specs[tempKey] = "";
+                onChange({ ...form, specifications: specs });
+              }}
+              className="w-full rounded-full text-xs"
+            >
+              <Plus className="mr-1 h-3.5 w-3.5" /> Add Specification Row
+            </Button>
+          </div>
+        </div>
+      </div>
 
         <div className="mt-6 flex justify-end gap-2">
           <Button variant="outline" onClick={onClose} className="rounded-full">Cancel</Button>

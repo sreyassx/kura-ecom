@@ -51,6 +51,14 @@ const orderInputSchema = z.object({
     id: z.string(),
     quantity: z.number().min(1, "Quantity must be at least 1"),
     size: z.string().nullable().optional(),
+    variant: z.object({
+      id: z.string().optional(),
+      name: z.string(),
+      value: z.string(),
+      sku: z.string().optional(),
+      price_adjustment: z.number().optional(),
+      image_url: z.string().optional(),
+    }).nullable().optional()
   }))
 });
 
@@ -70,7 +78,7 @@ export const placeOrderSecure = createServerFn({ method: 'POST' })
       // Fetch correct product prices and details fresh from DB
       const { data: dbProducts, error: dbError } = await client
         .from('products')
-        .select('id, name, slug, price_cents, image_url, active')
+        .select('id, name, slug, price_cents, image_url, active, variants')
         .in('id', productIds);
 
       if (dbError || !dbProducts) {
@@ -93,20 +101,33 @@ export const placeOrderSecure = createServerFn({ method: 'POST' })
           throw new Error(`Product "${dbProd.name}" is no longer available.`);
         }
 
-        subtotalCents += dbProd.price_cents * item.quantity;
+        // Validate variant and calculate correct price including adjustment
+        let price = dbProd.price_cents;
+        if (item.variant) {
+          const dbVariants = Array.isArray((dbProd as any).variants) ? (dbProd as any).variants : [];
+          const matchedVariant = dbVariants.find(
+            (v: any) => v.name === item.variant?.name && v.value === item.variant?.value
+          );
+          if (matchedVariant && matchedVariant.price_adjustment) {
+            price += matchedVariant.price_adjustment;
+          }
+        }
+
+        subtotalCents += price * item.quantity;
 
         orderItems.push({
           id: dbProd.id,
           name: dbProd.name,
           slug: dbProd.slug,
-          priceCents: dbProd.price_cents,
+          priceCents: price,
           quantity: item.quantity,
           size: item.size || null,
-          imageUrl: dbProd.image_url || null,
+          imageUrl: item.variant?.image_url || dbProd.image_url || null,
+          variant: item.variant || null,
         });
       }
 
-      // Calculate shipping
+      // Calculate shipping using the original threshold calculation
       const shippingCents = subtotalCents > 5000 ? 0 : 490;
       const totalCents = subtotalCents + shippingCents;
 

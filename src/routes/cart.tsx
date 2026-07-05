@@ -17,6 +17,7 @@ const cartSearchSchema = z.object({
   buyNow: z.string().optional(),
   qty: z.coerce.number().optional(),
   size: z.string().optional(),
+  variant: z.string().optional(),
 })
 
 export const Route = createFileRoute('/cart')({
@@ -60,30 +61,61 @@ function CartPage() {
     }
   })
 
-  const buyNowItems = buyNowProduct ? [{
-    productId: buyNowProduct.id,
-    slug: buyNowProduct.slug,
-    name: buyNowProduct.name,
-    priceCents: buyNowProduct.price_cents,
-    imageUrl: buyNowProduct.image_url,
-    quantity: buyNowQty,
-    size: size || undefined
-  }] : []
+  const buyNowItems = (() => {
+    if (!buyNowProduct) return [];
+    
+    const list = Array.isArray(buyNowProduct.variants) ? buyNowProduct.variants : [];
+    const variantVal = Route.useSearch().variant;
+    
+    let matchedVariant = null;
+    let price = buyNowProduct.price_cents;
+    let imageUrl = buyNowProduct.image_url;
+    
+    if (variantVal) {
+      const parts = variantVal.split(' / ');
+      const matchedList = list.filter((v: any) => parts.includes(v.value));
+      if (matchedList.length > 0) {
+        matchedVariant = {
+          id: matchedList.map((v: any) => v.id).join('-'),
+          name: matchedList.map((v: any) => v.name).join(' / '),
+          value: matchedList.map((v: any) => v.value).join(' / '),
+          price_adjustment: matchedList.reduce((sum: number, v: any) => sum + (v.price_adjustment || 0), 0),
+          image_url: matchedList.find((v: any) => v.image_url)?.image_url,
+          sku: matchedList.find((v: any) => v.sku)?.sku
+        };
+        price += matchedVariant.price_adjustment || 0;
+        if (matchedVariant.image_url) {
+          imageUrl = matchedVariant.image_url;
+        }
+      }
+    }
+
+    return [{
+      productId: buyNowProduct.id,
+      slug: buyNowProduct.slug,
+      name: buyNowProduct.name,
+      priceCents: price,
+      imageUrl: imageUrl,
+      quantity: buyNowQty,
+      size: size || undefined,
+      variant: matchedVariant
+    }];
+  })();
 
   const items = isBuyNow ? buyNowItems : cartItems
   const subtotalCents = isBuyNow
-    ? (buyNowProduct ? buyNowProduct.price_cents * buyNowQty : 0)
+    ? (buyNowItems[0] ? buyNowItems[0].priceCents * buyNowQty : 0)
     : cartSubtotalCents
 
-  const remove = (productId: string, itemSize?: string) => {
+  const remove = (productId: string, itemSize?: string, variantVal?: string) => {
     if (isBuyNow) {
       navigate({ to: '/products' })
     } else {
-      cartRemove(productId, itemSize)
+      cartRemove(productId, itemSize, variantVal)
     }
   }
 
-  const setQty = (productId: string, newQty: number, itemSize?: string) => {
+  const setQty = (productId: string, newQty: number, itemSize?: string, variantVal?: string) => {
     if (isBuyNow) {
       if (newQty <= 0) {
         navigate({ to: '/products' })
@@ -94,7 +126,7 @@ function CartPage() {
         })
       }
     } else {
-      cartSetQty(productId, newQty, itemSize)
+      cartSetQty(productId, newQty, itemSize, variantVal)
     }
   }
 
@@ -132,6 +164,7 @@ function CartPage() {
         id: item.productId,
         quantity: item.quantity,
         size: item.size || null,
+        variant: item.variant || null,
       }));
 
       const res = await placeOrderSecure({
@@ -296,7 +329,7 @@ function CartPage() {
               <div className="lg:col-span-8 space-y-4">
                 {items.map((item) => (
                   <div
-                    key={`${item.productId}-${item.size || ''}`}
+                    key={`${item.productId}-${item.size || ''}-${item.variant?.value || ''}`}
                     className="flex gap-4 rounded-2xl border border-border bg-card p-4 items-center"
                   >
                     <div className="h-20 w-20 rounded-lg overflow-hidden border border-border bg-surface shrink-0">
@@ -314,26 +347,33 @@ function CartPage() {
                       >
                         {item.name}
                       </Link>
-                      <p className="text-xs text-ink-muted mt-1">
-                        {formatPrice(item.priceCents)}
+                      <div className="flex flex-wrap gap-1 items-center mt-1">
+                        <span className="text-xs font-semibold text-foreground">
+                          {formatPrice(item.priceCents)}
+                        </span>
                         {item.size && (
-                          <span className="ml-2 inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-foreground uppercase">
+                          <span className="inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-foreground uppercase">
                             Size: {item.size}
                           </span>
                         )}
-                      </p>
+                        {item.variant && (
+                          <span className="inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-foreground uppercase">
+                            {item.variant.name}: {item.variant.value}
+                          </span>
+                        )}
+                      </div>
 
                       <div className="flex items-center gap-3 mt-2">
                         <div className="flex items-center rounded-full border border-border px-2 py-0.5 text-xs">
                           <button
-                            onClick={() => setQty(item.productId, item.quantity - 1, item.size)}
+                            onClick={() => setQty(item.productId, item.quantity - 1, item.size, item.variant?.value)}
                             className="px-1.5 font-bold hover:text-primary"
                           >
                             -
                           </button>
                           <span className="px-2 font-semibold">{item.quantity}</span>
                           <button
-                            onClick={() => setQty(item.productId, item.quantity + 1, item.size)}
+                            onClick={() => setQty(item.productId, item.quantity + 1, item.size, item.variant?.value)}
                             className="px-1.5 font-bold hover:text-primary"
                           >
                             +
@@ -346,7 +386,7 @@ function CartPage() {
                       variant="ghost"
                       size="icon"
                       className="text-ink-muted hover:text-destructive rounded-full"
-                      onClick={() => remove(item.productId, item.size)}
+                      onClick={() => remove(item.productId, item.size, item.variant?.value)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -513,13 +553,14 @@ function CartPage() {
                 <h3 className="font-display text-base font-bold mb-4">Review Order Items</h3>
                 <div className="divide-y divide-border/40">
                   {items.map((item) => (
-                    <div key={`${item.productId}-${item.size || ''}`} className="flex gap-4 py-3 first:pt-0 last:pb-0 items-center">
+                    <div key={`${item.productId}-${item.size || ''}-${item.variant?.value || ''}`} className="flex gap-4 py-3 first:pt-0 last:pb-0 items-center">
                       <img src={item.imageUrl || ''} alt="" className="h-12 w-12 rounded-lg object-cover border border-border bg-surface shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-xs text-foreground truncate">{item.name}</p>
-                        <p className="text-[10px] text-ink-muted">
-                          {item.quantity} × {formatPrice(item.priceCents)}
-                          {item.size && <span className="ml-1.5 font-semibold text-foreground uppercase">Size: {item.size}</span>}
+                        <p className="text-[10px] text-ink-muted flex flex-wrap gap-1.5 items-center">
+                          <span>{item.quantity} × {formatPrice(item.priceCents)}</span>
+                          {item.size && <span className="font-semibold text-foreground uppercase">Size: {item.size}</span>}
+                          {item.variant && <span className="font-semibold text-foreground uppercase">{item.variant.name}: {item.variant.value}</span>}
                         </p>
                       </div>
                       <span className="font-bold text-xs">{formatPrice(item.priceCents * item.quantity)}</span>

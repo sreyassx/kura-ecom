@@ -31,6 +31,8 @@ function ProductDetail() {
   const [qty, setQty] = useState(1)
   const [selectedSize, setSelectedSize] = useState<string | null>(null)
   const [showSizeGuide, setShowSizeGuide] = useState(false)
+  const [selectedOptions, setSelectedOptions] = useState<{ [name: string]: string }>({})
+  const [showSpecs, setShowSpecs] = useState(false)
 
   // Review form state
   const [reviewRating, setReviewRating] = useState(5)
@@ -50,6 +52,46 @@ function ProductDetail() {
       return data
     },
   })
+
+  const groupedVariants = (() => {
+    const list: any[] = Array.isArray(product?.variants) ? product.variants : [];
+    const groups: { [name: string]: any[] } = {};
+    for (const v of list) {
+      if (!v.name || !v.value) continue;
+      if (!groups[v.name]) groups[v.name] = [];
+      if (!groups[v.name].some((x) => x.value === v.value)) {
+        groups[v.name].push(v);
+      }
+    }
+    return groups;
+  })();
+
+  const calculatedPriceCents = (() => {
+    let price = product?.price_cents || 0;
+    const list: any[] = Array.isArray(product?.variants) ? product.variants : [];
+    Object.entries(selectedOptions).forEach(([name, val]) => {
+      const matched = list.find((v) => v.name === name && v.value === val);
+      if (matched && matched.price_adjustment) {
+        price += matched.price_adjustment;
+      }
+    });
+    return price;
+  })();
+
+  const handleSelectOption = (groupName: string, value: string) => {
+    setSelectedOptions((prev) => {
+      const next = { ...prev, [groupName]: value };
+      const list: any[] = Array.isArray(product?.variants) ? product.variants : [];
+      const matched = list.find((v) => v.name === groupName && v.value === value);
+      if (matched && matched.image_url) {
+        const idx = images.indexOf(matched.image_url);
+        if (idx !== -1) {
+          scrollToImage(idx);
+        }
+      }
+      return next;
+    });
+  };
 
   // Parse size configuration from product.images
   const sizeConfig = (() => {
@@ -266,18 +308,49 @@ function ProductDetail() {
       toast.error('Please select a size first!')
       return
     }
+
+    const optionNames = Object.keys(groupedVariants);
+    const missing = optionNames.filter((name) => !selectedOptions[name]);
+    if (missing.length > 0) {
+      toast.error(`Please select a ${missing[0]} first!`);
+      return;
+    }
+
+    const list: any[] = Array.isArray(product.variants) ? product.variants : [];
+    const selectedVariantsList = optionNames.map(name => {
+      const val = selectedOptions[name];
+      return list.find(v => v.name === name && v.value === val);
+    }).filter(Boolean);
+
+    const combinedVariant = selectedVariantsList.length > 0
+      ? {
+          id: selectedVariantsList.map(v => v.id).join('-'),
+          name: selectedVariantsList.map(v => v.name).join(' / '),
+          value: selectedVariantsList.map(v => v.value).join(' / '),
+          price_adjustment: selectedVariantsList.reduce((sum, v) => sum + (v.price_adjustment || 0), 0),
+          image_url: selectedVariantsList.find(v => v.image_url)?.image_url,
+          sku: selectedVariantsList.find(v => v.sku)?.sku
+        }
+      : null;
+
     add(
       {
         productId: product.id,
         slug: product.slug,
         name: product.name,
-        priceCents: product.price_cents,
-        imageUrl: images[activeIndex] || product.image_url,
+        priceCents: calculatedPriceCents,
+        imageUrl: combinedVariant?.image_url || images[activeIndex] || product.image_url,
         size: selectedSize || undefined,
+        variant: combinedVariant,
       },
       qty
     )
-    toast.success(`${product.name}${selectedSize ? ` (${selectedSize})` : ''} added to cart`)
+
+    let variantLabel = '';
+    if (selectedSize) variantLabel += ` (${selectedSize})`;
+    if (combinedVariant) variantLabel += ` [${combinedVariant.value}]`;
+
+    toast.success(`${product.name}${variantLabel} added to cart`)
   }
 
   const handleBuyNow = () => {
@@ -285,12 +358,31 @@ function ProductDetail() {
       toast.error('Please select a size first!')
       return
     }
+
+    const optionNames = Object.keys(groupedVariants);
+    const missing = optionNames.filter((name) => !selectedOptions[name]);
+    if (missing.length > 0) {
+      toast.error(`Please select a ${missing[0]} first!`);
+      return;
+    }
+
+    const list: any[] = Array.isArray(product.variants) ? product.variants : [];
+    const selectedVariantsList = optionNames.map(name => {
+      const val = selectedOptions[name];
+      return list.find(v => v.name === name && v.value === val);
+    }).filter(Boolean);
+
+    const combinedVariantVal = selectedVariantsList.length > 0
+      ? selectedVariantsList.map(v => v.value).join(' / ')
+      : undefined;
+
     navigate({
       to: '/cart',
       search: {
         buyNow: product!.slug,
         qty: qty,
         size: selectedSize || undefined,
+        variant: combinedVariantVal
       },
     })
   }
@@ -468,11 +560,11 @@ function ProductDetail() {
               {/* Price */}
               <div className="mt-4 flex items-baseline gap-2">
                 <span className="text-2xl font-bold text-foreground">
-                  {formatPrice(product.price_cents)}
+                  {formatPrice(calculatedPriceCents)}
                 </span>
                 {product.compare_at_cents && product.compare_at_cents > product.price_cents && (
                   <span className="text-sm text-ink-muted line-through">
-                    {formatPrice(product.compare_at_cents)}
+                    {formatPrice(product.compare_at_cents + (calculatedPriceCents - product.price_cents))}
                   </span>
                 )}
               </div>
@@ -484,6 +576,133 @@ function ProductDetail() {
                   {product.description}
                 </p>
               </div>
+
+              {/* Specifications Section */}
+              {product.specifications && Object.keys(product.specifications).length > 0 && (
+                <div className="mt-6 border-t border-border/60 pt-6">
+                  {/* Mobile Collapsible */}
+                  <div className="md:hidden">
+                    <button
+                      type="button"
+                      onClick={() => setShowSpecs(!showSpecs)}
+                      className="flex w-full items-center justify-between py-2 text-sm font-semibold text-foreground focus:outline-none"
+                    >
+                      <span>Specifications</span>
+                      {showSpecs ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </button>
+                    {showSpecs && (
+                      <div className="mt-3 overflow-hidden rounded-2xl border border-border bg-card animate-fadeIn">
+                        <table className="w-full text-xs text-left border-collapse">
+                          <tbody className="divide-y divide-border/30">
+                            {Object.entries(product.specifications).map(([k, v]) => (
+                              <tr key={k} className="hover:bg-muted/10">
+                                <td className="p-3 font-semibold text-ink-muted w-1/3 bg-muted/20">{k}</td>
+                                <td className="p-3 text-foreground font-normal">{v as string}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Desktop Always Visible */}
+                  <div className="hidden md:block">
+                    <h3 className="text-sm font-semibold text-foreground font-display font-bold">Specifications</h3>
+                    <div className="mt-3 overflow-hidden rounded-2xl border border-border bg-card">
+                      <table className="w-full text-xs text-left border-collapse">
+                        <tbody className="divide-y divide-border/30">
+                          {Object.entries(product.specifications).map(([k, v]) => (
+                            <tr key={k} className="hover:bg-muted/10">
+                              <td className="p-3 font-semibold text-ink-muted w-1/3 bg-muted/20">{k}</td>
+                              <td className="p-3 text-foreground font-normal">{v as string}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Variants Selector Section */}
+              {Object.entries(groupedVariants).map(([groupName, items]) => {
+                const isColor = groupName.toLowerCase() === 'color' || groupName.toLowerCase() === 'colour';
+                return (
+                  <div key={groupName} className="mt-6 border-t border-border/60 pt-6">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-semibold text-foreground">
+                        Select {groupName}
+                      </label>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2.5">
+                      {items.map((item) => {
+                        const isSelected = selectedOptions[groupName] === item.value;
+                        if (isColor) {
+                          const colorMap: { [key: string]: string } = {
+                            red: '#ef4444',
+                            blue: '#3b82f6',
+                            green: '#22c55e',
+                            yellow: '#eab308',
+                            black: '#000000',
+                            white: '#ffffff',
+                            grey: '#808080',
+                            gray: '#808080',
+                            orange: '#f97316',
+                            purple: '#a855f7',
+                            brown: '#78350f',
+                            pink: '#ec4899',
+                            beige: '#f5f5dc',
+                            cream: '#fffdd0',
+                            gold: '#ffd700',
+                            silver: '#c0c0c0',
+                            sage: '#87a987',
+                          };
+                          const bgColor = colorMap[item.value.toLowerCase()] || item.value.toLowerCase();
+                          const borderClass = item.value.toLowerCase() === 'white' ? 'border-border/80' : 'border-transparent';
+                          return (
+                            <button
+                              key={item.value}
+                              type="button"
+                              onClick={() => handleSelectOption(groupName, item.value)}
+                              className={`relative h-9 w-9 rounded-full border-2 transition-all flex items-center justify-center ${
+                                isSelected
+                                  ? 'border-primary ring-2 ring-primary/20 scale-110 shadow-sm'
+                                  : 'border-border/40 hover:scale-105 hover:border-foreground/30'
+                              }`}
+                              title={item.value}
+                            >
+                              <span
+                                className={`h-7 w-7 rounded-full border ${borderClass}`}
+                                style={{ backgroundColor: bgColor }}
+                              />
+                            </button>
+                          );
+                        }
+                        return (
+                          <button
+                            key={item.value}
+                            type="button"
+                            onClick={() => handleSelectOption(groupName, item.value)}
+                            className={`min-w-12 h-10 px-4 rounded-full border text-xs font-bold transition flex items-center justify-center ${
+                              isSelected
+                                ? "border-primary bg-primary text-primary-foreground shadow-sm shadow-primary/20 scale-105"
+                                : "border-border bg-card text-foreground hover:border-foreground/40 active:scale-95"
+                            }`}
+                          >
+                            {item.value}
+                            {item.price_adjustment && item.price_adjustment > 0 ? (
+                              <span className="ml-1 text-[9px] opacity-90">
+                                (+{formatPrice(item.price_adjustment)})
+                              </span>
+                            ) : null}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
 
               {/* Size Selector Section */}
               {hasSizes && (

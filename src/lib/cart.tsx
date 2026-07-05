@@ -8,6 +8,14 @@ export type CartItem = {
   imageUrl: string | null;
   quantity: number;
   size?: string;
+  variant?: {
+    id?: string;
+    name: string;
+    value: string;
+    sku?: string;
+    price_adjustment?: number;
+    image_url?: string;
+  } | null;
 };
 
 type CartCtx = {
@@ -15,8 +23,8 @@ type CartCtx = {
   count: number;
   subtotalCents: number;
   add: (item: Omit<CartItem, "quantity">, qty?: number) => void;
-  remove: (productId: string, size?: string) => void;
-  setQty: (productId: string, qty: number, size?: string) => void;
+  remove: (productId: string, size?: string, variantVal?: string) => void;
+  setQty: (productId: string, qty: number, size?: string, variantVal?: string) => void;
   clear: () => void;
   lastAddedAt: number;
 };
@@ -49,10 +57,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
       subtotalCents: items.reduce((s, i) => s + i.quantity * i.priceCents, 0),
       add: (item, qty = 1) => {
         setItems((prev) => {
-          const existing = prev.find((p) => p.productId === item.productId && p.size === item.size);
+          const existing = prev.find(
+            (p) =>
+              p.productId === item.productId &&
+              p.size === item.size &&
+              p.variant?.value === item.variant?.value
+          );
           if (existing) {
             return prev.map((p) =>
-              p.productId === item.productId && p.size === item.size
+              p.productId === item.productId &&
+              p.size === item.size &&
+              p.variant?.value === item.variant?.value
                 ? { ...p, quantity: p.quantity + qty }
                 : p
             );
@@ -61,12 +76,35 @@ export function CartProvider({ children }: { children: ReactNode }) {
         });
         setLastAddedAt(Date.now());
       },
-      remove: (id, size) => setItems((prev) => prev.filter((p) => !(p.productId === id && p.size === size))),
-      setQty: (id, qty, size) =>
+      remove: (id, size, variantVal) =>
+        setItems((prev) =>
+          prev.filter(
+            (p) =>
+              !(
+                p.productId === id &&
+                p.size === size &&
+                p.variant?.value === variantVal
+              )
+          )
+        ),
+      setQty: (id, qty, size, variantVal) =>
         setItems((prev) =>
           qty <= 0
-            ? prev.filter((p) => !(p.productId === id && p.size === size))
-            : prev.map((p) => (p.productId === id && p.size === size ? { ...p, quantity: qty } : p)),
+            ? prev.filter(
+                (p) =>
+                  !(
+                    p.productId === id &&
+                    p.size === size &&
+                    p.variant?.value === variantVal
+                  )
+              )
+            : prev.map((p) =>
+                p.productId === id &&
+                p.size === size &&
+                p.variant?.value === variantVal
+                  ? { ...p, quantity: qty }
+                  : p
+              )
         ),
       clear: () => setItems([]),
       lastAddedAt,

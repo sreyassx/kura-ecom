@@ -120,6 +120,8 @@ export type Database = {
           slug: string
           stock: number
           updated_at: string
+          variants: Json
+          specifications: Json
         }
         Insert: {
           active?: boolean
@@ -138,6 +140,8 @@ export type Database = {
           slug: string
           stock?: number
           updated_at?: string
+          variants?: Json
+          specifications?: Json
         }
         Update: {
           active?: boolean
@@ -156,6 +160,8 @@ export type Database = {
           slug?: string
           stock?: number
           updated_at?: string
+          variants?: Json
+          specifications?: Json
         }
         Relationships: [
           {

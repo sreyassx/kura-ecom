@@ -177,11 +177,16 @@ function OrdersPage() {
                                   >
                                     {item.name}
                                   </Link>
-                                  <p className="text-[10px] text-ink-muted mt-0.5">
-                                    Qty: {item.quantity} · {formatPrice(item.priceCents)} each
+                                  <p className="text-[10px] text-ink-muted mt-0.5 flex flex-wrap gap-1.5 items-center">
+                                    <span>Qty: {item.quantity} · {formatPrice(item.priceCents)} each</span>
                                     {item.size && (
-                                      <span className="ml-1.5 inline-flex items-center rounded bg-muted px-1 py-0.25 text-[9px] font-bold text-foreground uppercase">
+                                      <span className="inline-flex items-center rounded bg-muted px-1 py-0.25 text-[9px] font-bold text-foreground uppercase">
                                         Size: {item.size}
+                                      </span>
+                                    )}
+                                    {item.variant && (
+                                      <span className="inline-flex items-center rounded bg-muted px-1 py-0.25 text-[9px] font-bold text-foreground uppercase">
+                                        {item.variant.name}: {item.variant.value}
                                       </span>
                                     )}
                                   </p>
