@@ -70,7 +70,7 @@ function getSupabaseClient() {
   return supabase;
 }
 
-export const getHomepageConfig = createServerFn({ method: 'GET' })
+export const getHomepageConfig = createServerFn({ method: 'POST' })
   .handler(async (): Promise<HomepageConfig> => {
     console.log("[getHomepageConfig] server function invoked");
     const safeJsonParse = (value: any) => {
@@ -398,7 +398,7 @@ export const updateSiteSettings = createServerFn({ method: 'POST' })
     return { success: true }
   })
 
-export const testFetchSiteSettings = createServerFn({ method: 'GET' })
+export const testFetchSiteSettings = createServerFn({ method: 'POST' })
   .handler(async () => {
     console.log("[testFetchSiteSettings] server function invoked");
     try {
