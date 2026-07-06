@@ -8,7 +8,7 @@ import { SiteLayout } from "@/components/site/SiteLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 import { formatPrice } from "@/lib/format";
-import { getHomepageConfig, updateSiteSettings, siteSettingsSchema } from "@/lib/homepage";
+import { getHomepageConfig, updateSiteSettings, siteSettingsSchema, testFetchSiteSettings } from "@/lib/homepage";
 
 import React from "react";
 
@@ -1802,13 +1802,16 @@ function HomepagePanel() {
   const [announcement, setAnnouncement] = useState("");
   const [trustIndicators, setTrustIndicators] = useState<string[]>([]);
 
-  const { data: homeConfig, isLoading } = useQuery({
+  const { data: homeConfig, isLoading, error, isError } = useQuery({
     queryKey: ["admin-homepage-config"],
     queryFn: () => getHomepageConfig(),
   });
 
+  console.log("[HomepagePanel] Query outcome:", { homeConfig, isLoading, isError, error });
+
   useEffect(() => {
     if (homeConfig) {
+      console.log("[HomepagePanel] Populating fields from homeConfig:", homeConfig);
       setBadge(homeConfig.badge || "");
       setHeadline(homeConfig.headline || "");
       setSubheading(homeConfig.subheading || "");
@@ -1940,7 +1943,28 @@ function HomepagePanel() {
         </div>
       </div>
 
-      <div className="mt-6 flex justify-end">
+      <div className="mt-6 flex justify-between items-center">
+        <Button
+          type="button"
+          variant="outline"
+          className="rounded-full text-xs"
+          onClick={async () => {
+            const loadingToast = toast.loading("Running DB test query...");
+            try {
+              const res = await testFetchSiteSettings();
+              console.log("[DB Test Query Result]", res);
+              if (res.success) {
+                toast.success(`Success! Queried site_settings, found ${res.count} records.`, { id: loadingToast });
+              } else {
+                toast.error(`Error querying site_settings: ${JSON.stringify(res.error)}`, { id: loadingToast });
+              }
+            } catch (err: any) {
+              toast.error(`Unexpected test error: ${err.message || String(err)}`, { id: loadingToast });
+            }
+          }}
+        >
+          Test DB Connection
+        </Button>
         <Button disabled={save.isPending} onClick={() => save.mutate()} className="rounded-full">
           {save.isPending ? "Saving..." : "Save Changes"}
         </Button>
@@ -1961,13 +1985,16 @@ function BrandingPanel() {
   const [faqs, setFaqs] = useState<{ id: string; question: string; answer: string }[]>([]);
   const [uploading, setUploading] = useState(false);
 
-  const { data: homeConfig, isLoading } = useQuery({
+  const { data: homeConfig, isLoading, error, isError } = useQuery({
     queryKey: ["admin-homepage-config"],
     queryFn: () => getHomepageConfig(),
   });
 
+  console.log("[BrandingPanel] Query outcome:", { homeConfig, isLoading, isError, error });
+
   useEffect(() => {
     if (homeConfig) {
+      console.log("[BrandingPanel] Populating fields from homeConfig:", homeConfig);
       setStoreName(homeConfig.store_name || "");
       setStoreDesc(homeConfig.store_description || "");
       setLogoUrl(homeConfig.store_logo_url || "");

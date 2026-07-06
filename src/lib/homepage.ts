@@ -56,6 +56,8 @@ function getSupabaseClient() {
   const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+  console.log("[getSupabaseClient] Configured URL:", url, "Has serviceKey:", !!serviceKey);
+
   if (url && serviceKey) {
     if (typeof globalThis !== 'undefined' && !(globalThis as any).WebSocket) {
       (globalThis as any).WebSocket = class {};
@@ -64,11 +66,13 @@ function getSupabaseClient() {
       auth: { persistSession: false }
     });
   }
+  console.log("[getSupabaseClient] Falling back to standard anonymous supabase client");
   return supabase;
 }
 
 export const getHomepageConfig = createServerFn({ method: 'GET' })
   .handler(async (): Promise<HomepageConfig> => {
+    console.log("[getHomepageConfig] server function invoked");
     const safeJsonParse = (value: any) => {
       if (typeof value !== 'string') return value;
       try {
@@ -80,9 +84,16 @@ export const getHomepageConfig = createServerFn({ method: 'GET' })
 
     try {
       const client = getSupabaseClient();
+      console.log("[getHomepageConfig] Querying site_settings table...");
       const { data: dbData, error } = await client
         .from('site_settings')
         .select('*');
+
+      console.log("[getHomepageConfig] site_settings query result. Data count:", dbData ? dbData.length : 'null', "Error:", error);
+
+      if (error) {
+        console.error("[getHomepageConfig] Supabase query error:", error);
+      }
 
       if (!error && dbData && dbData.length > 0) {
         const config: HomepageConfig = {
@@ -163,7 +174,10 @@ export const getHomepageConfig = createServerFn({ method: 'GET' })
           }
         }
 
+        console.log("[getHomepageConfig] Successfully mapped data from database. Store name:", config.store_name);
         return config;
+      } else {
+        console.warn("[getHomepageConfig] site_settings query returned no rows or had error. Length:", dbData ? dbData.length : 'undefined');
       }
     } catch (e) {
       console.warn("Failed to read site_settings from Supabase, falling back to local file:", e);
@@ -383,3 +397,21 @@ export const updateSiteSettings = createServerFn({ method: 'POST' })
 
     return { success: true }
   })
+
+export const testFetchSiteSettings = createServerFn({ method: 'GET' })
+  .handler(async () => {
+    console.log("[testFetchSiteSettings] server function invoked");
+    try {
+      const client = getSupabaseClient();
+      console.log("[testFetchSiteSettings] Querying site_settings table...");
+      const { data, error } = await client
+        .from('site_settings')
+        .select('*');
+      console.log("[testFetchSiteSettings] Query result. Data count:", data ? data.length : 'null', "Error:", error);
+      return { success: !error, count: data?.length, error, data };
+    } catch (e: any) {
+      console.error("[testFetchSiteSettings] Unexpected error:", e);
+      return { success: false, error: e.message || String(e) };
+    }
+  });
+
