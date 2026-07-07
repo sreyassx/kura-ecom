@@ -137,31 +137,7 @@ function HomeComponent() {
               )}
             </div>
 
-            <h1 className="font-display text-4xl font-black tracking-tight sm:text-6xl text-foreground leading-[1.1] sm:tracking-[-0.03em]">
-              {before}<span className="bg-gradient-to-r from-[#A3B18A] via-[#87A96B] to-[#4A5D3A] bg-clip-text text-transparent">{last}</span>
-            </h1>
-            
-            <div className="mt-6 sm:mt-8 mb-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-4 py-2 text-xs font-semibold text-primary tracking-wide shadow-sm">
-                <Sparkles className="h-3 w-3" /> {badgeText}
-              </span>
-            </div>
-            
-            <p className="mx-auto mt-6 max-w-2xl text-lg sm:text-xl text-ink-muted/90 leading-relaxed font-normal">
-              {subheadingText}
-            </p>
-
-            {/* Trust signals */}
-            {homeConfig?.trust_indicators && homeConfig.trust_indicators.length > 0 && (
-              <div className="mt-8 flex flex-wrap justify-center items-center gap-x-4 gap-y-2 text-xs font-semibold text-ink-muted/70 tracking-wide uppercase select-none">
-                {homeConfig.trust_indicators.map((indicator: string, index: number) => (
-                  <span key={index} className="flex items-center gap-1.5">
-                    {index > 0 && <span className="text-ink-muted/30 mr-2">•</span>}
-                    <span className="text-emerald-500 text-sm font-bold">✓</span> {indicator}
-                  </span>
-                ))}
-              </div>
-            )}
+            {/* Main heading, pill/badge, subheading, and trust signals have been removed/commented out to simplify the hero */}
 
             <div className="mt-12 flex justify-center gap-3">
               <Link to="/products">
