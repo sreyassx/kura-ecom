@@ -8,6 +8,8 @@ if (typeof globalThis !== 'undefined' && !(globalThis as any).WebSocket) {
   (globalThis as any).WebSocket = class {};
 }
 
+import { supabase } from '@/integrations/supabase/client'
+
 function getSupabaseClient() {
   const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -16,7 +18,7 @@ function getSupabaseClient() {
       auth: { persistSession: false }
     });
   }
-  throw new Error("Missing Supabase configuration env variables.");
+  return supabase;
 }
 
 async function getOptionalUserId(): Promise<string | null> {
