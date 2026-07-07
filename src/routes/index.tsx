@@ -110,7 +110,7 @@ function HomeComponent() {
     <SiteLayout>
       <div className="space-y-16 pb-24">
         {/* Hero Section */}
-        <div className="relative overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background pt-20 pb-12 sm:pt-32 sm:pb-20">
+        <div className="relative overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background pt-20 pb-0 sm:pt-32 sm:pb-0">
           {/* Subtle grid pattern background */}
           <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(110,138,87,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(110,138,87,0.06)_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_at_center,black_60%,transparent_100%)] pointer-events-none" />
 
@@ -120,7 +120,7 @@ function HomeComponent() {
 
           <div className="relative z-10 mx-auto max-w-7xl px-4 text-center">
             {/* Centered Animated Logo */}
-            <div className="flex flex-col items-center justify-center mb-12 sm:mb-16">
+            <div className="flex flex-col items-center justify-center">
               {homeConfig?.store_logo_url ? (
                 <img 
                    src={homeConfig.store_logo_url} 
@@ -136,12 +136,7 @@ function HomeComponent() {
                 </span>
               )}
             </div>
-
-            {/* Main heading, pill/badge, subheading, and trust signals have been removed/commented out to simplify the hero */}
-
-            {/* Browse All Drops button has been removed */}
           </div>
-          <Hero3D products={products} isLoading={isLoading} />
         </div>
 
         {/* Category Shortcuts Carousel */}
@@ -169,73 +164,6 @@ function HomeComponent() {
             </div>
           </div>
         )}
-
-        {/* Featured Products */}
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between border-b border-border/40 pb-4">
-            <div>
-              <h2 className="font-display text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" /> Featured Drops
-              </h2>
-              <p className="text-xs text-ink-muted mt-1">Highlighted selections hand-picked by the owner.</p>
-            </div>
-            <Link to="/products" className="text-sm font-semibold text-primary hover:underline flex items-center gap-1 group">
-              See all <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition" />
-            </Link>
-          </div>
-          {isLoading ? (
-            <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-4 lg:gap-x-8">
-              {[...Array(4)].map((_, i) => (
-                <ProductCardSkeleton key={i} />
-              ))}
-            </div>
-          ) : (
-            <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-4 lg:gap-x-8">
-              {featuredProducts.map((product: any) => (
-                <ProductCard key={product.id} p={product} />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Dynamic Category Rows */}
-        {displayCategories.map((c) => {
-          const categoryProducts = products?.filter((p: any) => p.category_id === c.id).slice(0, 4) || [];
-          if (categoryProducts.length === 0 && isLoading) return null; // hide or show skeletons
-          
-          return (
-            <div key={c.id} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center justify-between border-b border-border/40 pb-4">
-                <div>
-                  <h2 className="font-display text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-                    {getCategoryIcon(c.slug)} {c.name}
-                  </h2>
-                  <p className="text-xs text-ink-muted mt-1">
-                    {c.description || `Curated selections from our ${c.name} collection.`}
-                  </p>
-                </div>
-                <Link to="/products" search={{ category: c.slug }} className="text-sm font-semibold text-primary hover:underline flex items-center gap-1 group">
-                  View Category <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition" />
-                </Link>
-              </div>
-              {isLoading ? (
-                <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-4 lg:gap-x-8">
-                  {[...Array(4)].map((_, i) => (
-                    <ProductCardSkeleton key={i} />
-                  ))}
-                </div>
-              ) : categoryProducts.length === 0 ? (
-                <p className="mt-6 text-sm text-ink-muted italic">No drops available in this category yet.</p>
-              ) : (
-                <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-4 lg:gap-x-8">
-                  {categoryProducts.map((product: any) => (
-                    <ProductCard key={product.id} p={product} />
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
       </div>
     </SiteLayout>
   )
