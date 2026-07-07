@@ -101,7 +101,10 @@ function HomeComponent() {
   const subheadingText = homeConfig?.subheading || "Hand-picked viral gadgets, premium streetwear, and everyday essentials chosen for quality and design.";
   const { before, last } = splitHeadline(headlineText);
 
-  const featuredProducts = products?.filter((p: any) => p.featured || p.categories?.slug === 'featured-drops').slice(0, 4) || []
+  const featuredProducts = products?.filter((p: any) => p.featured || p.categories?.slug === 'featured-drops') || []
+  const displayProducts = featuredProducts.length > 0 
+    ? featuredProducts.slice(0, 6) 
+    : (products || []).slice(0, 6);
   
   // Exclude featured-drops from the category rows if it's already shown at the top
   const displayCategories = categories?.filter((c) => c.slug !== 'featured-drops') || []
@@ -164,6 +167,37 @@ function HomeComponent() {
             </div>
           </div>
         )}
+
+        {/* Latest Drops / Featured Section */}
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between border-b border-border/40 pb-4">
+            <div>
+              <h2 className="font-display text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" /> Latest Drops
+              </h2>
+              <p className="text-xs text-ink-muted mt-1">Highlighted selections hand-picked for you.</p>
+            </div>
+            <Link to="/products" className="text-sm font-semibold text-primary hover:underline flex items-center gap-1 group">
+              See all <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition" />
+            </Link>
+          </div>
+
+          {isLoading ? (
+            <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 lg:gap-x-6">
+              {[...Array(6)].map((_, i) => (
+                <ProductCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : displayProducts.length === 0 ? (
+            <p className="mt-6 text-sm text-ink-muted italic">No products available at the moment.</p>
+          ) : (
+            <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 lg:gap-x-6">
+              {displayProducts.map((product: any) => (
+                <ProductCard key={product.id} p={product} />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </SiteLayout>
   )
