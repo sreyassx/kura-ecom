@@ -197,7 +197,7 @@ function OrderConfirmationPage() {
 
           {/* Continue Shopping Button */}
           <div className="text-center pt-4">
-            <Link to="/products">
+            <Link to="/">
               <Button size="lg" className="rounded-full px-10 shadow-lg shadow-primary/25 hover:scale-105 transition duration-200">
                 Continue Shopping <ChevronRight className="ml-1.5 h-4 w-4" />
               </Button>

@@ -379,18 +379,32 @@ function ProductDetail() {
       return list.find(v => v.name === name && v.value === val);
     }).filter(Boolean);
 
-    const combinedVariantVal = selectedVariantsList.length > 0
-      ? selectedVariantsList.map(v => v.value).join(' / ')
-      : undefined;
+    const combinedVariant = selectedVariantsList.length > 0
+      ? {
+          id: selectedVariantsList.map(v => v.id).join('-'),
+          name: selectedVariantsList.map(v => v.name).join(' / '),
+          value: selectedVariantsList.map(v => v.value).join(' / '),
+          price_adjustment: selectedVariantsList.reduce((sum, v) => sum + (v.price_adjustment || 0), 0),
+          image_url: selectedVariantsList.find(v => v.image_url)?.image_url,
+          sku: selectedVariantsList.find(v => v.sku)?.sku
+        }
+      : null;
+
+    add(
+      {
+        productId: product.id,
+        slug: product.slug,
+        name: product.name,
+        priceCents: calculatedPriceCents,
+        imageUrl: combinedVariant?.image_url || images[activeIndex] || product.image_url,
+        size: selectedSize || undefined,
+        variant: combinedVariant,
+      },
+      1
+    )
 
     navigate({
       to: '/cart',
-      search: {
-        buyNow: product!.slug,
-        qty: qty,
-        size: selectedSize || undefined,
-        variant: combinedVariantVal
-      },
     })
   }
 
