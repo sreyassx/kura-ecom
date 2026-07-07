@@ -148,7 +148,7 @@ export const placeOrderSecure = createServerFn({ method: 'POST' })
         subtotal_cents: subtotalCents,
         shipping_cents: shippingCents,
         total_cents: totalCents,
-        status: 'placed',
+        status: 'payment_pending',
       };
 
       console.log("Inserting secure server-calculated order into Supabase...", {

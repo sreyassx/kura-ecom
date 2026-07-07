@@ -217,12 +217,15 @@ function CartPage() {
 
       return res;
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       toast.success('Order placed successfully!')
       if (!isBuyNow) {
         clear()
       }
-      navigate({ to: user ? '/orders' : '/' }) // Navigate to new orders page if logged in
+      navigate({
+        to: '/order-confirmation',
+        search: { orderId: data.orderId }
+      })
     },
     onError: (err: any) => {
       toast.error(err.message)
