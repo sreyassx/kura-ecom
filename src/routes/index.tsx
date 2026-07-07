@@ -139,13 +139,7 @@ function HomeComponent() {
 
             {/* Main heading, pill/badge, subheading, and trust signals have been removed/commented out to simplify the hero */}
 
-            <div className="mt-12 flex justify-center gap-3">
-              <Link to="/products">
-                <button className="rounded-full bg-primary px-9 py-4 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/95 hover:scale-105 active:scale-95 transition duration-200">
-                  Browse All Drops
-                </button>
-              </Link>
-            </div>
+            {/* Browse All Drops button has been removed */}
           </div>
           <Hero3D products={products} isLoading={isLoading} />
         </div>
