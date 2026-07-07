@@ -171,6 +171,6 @@ export const placeOrderSecure = createServerFn({ method: 'POST' })
 
     } catch (err: any) {
       console.error("placeOrderSecure failed:", err.message || err);
-      throw new Error(err.message || "Checkout failed");
+      return { success: false, error: err.message || "Checkout failed" };
     }
   });

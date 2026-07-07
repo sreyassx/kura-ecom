@@ -181,7 +181,7 @@ function CartPage() {
       });
 
       if (!res?.success) {
-        throw new Error('Failed to place order.');
+        throw new Error(res?.error || 'Failed to place order.');
       }
 
       // Save address to user_metadata if logged in
