@@ -2,8 +2,11 @@ node_modules/
 .npm/
 .cache/
 .local/
+
 .env
-.env.local
+.env.*
+!.env.example
+
 .DS_Store
 dist/
 build/
