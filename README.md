@@ -1,3 +1,6 @@
+> ⚠️ This project is archived and maintained as a portfolio/demo project. Active development has moved to my Shopify-based store.
+>
+
 # 🛒 Kura
 
 A modern single-vendor e-commerce platform built with TypeScript, Supabase, and Vercel.
